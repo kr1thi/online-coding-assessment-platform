@@ -27,5 +27,11 @@ The platform allows admins to create tests and students to attend coding assessm
 frontend - React Application  
 backend - Spring Boot Application
 
+## Screenshots
+![Login](images/login.png)
+![Dashboard](images/dashboard.png)
+![Editor](images/editor.png)
+![Result](images/result.png)
+
 ## Author
 Kiruthika
