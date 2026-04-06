@@ -26,12 +26,31 @@ The platform allows admins to create tests and students to attend coding assessm
 ## Project Structure
 frontend - React Application  
 backend - Spring Boot Application
-
 ## Screenshots
-![Login](images/login.png)
-![Dashboard](images/dashboard.png)
-![Editor](images/editor.png)
-![Result](images/result.png)
+
+### Login Page
+![Login](images/Login.png)
+
+### Signup Page
+![Signup](images/Signup.png)
+
+### Admin Dashboard
+![Admin](images/Admin_dashboard.png)
+
+### Teacher Dashboard
+![Teacher](images/Teacher_dashboard.png)
+
+### Manage Test
+![Manage Test](images/Teacher_dashboard_managetest.png)
+
+### Code Editor
+![Code Editor](images/code_editor.png)
+
+### Student Dashboard
+![Student Dashboard](images/Student_dashboard.png)
+
+### Student Assessment
+![Student Assessment](images/student_assessment.png)
 
 ## Author
 Kiruthika
