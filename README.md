@@ -43,14 +43,14 @@ backend - Spring Boot Application
 ### Manage Test
 ![Manage Test](Teacher_dashboard_managetest.png)
 
-### Code Editor
-![Code Editor](code_editor.png)
-
 ### Student Dashboard
 ![Student Dashboard](Student_dashboard.png)
 
 ### Student Assessment
 ![Student Assessment](student_assessment.png)
+
+### Code Editor
+![Code Editor](code_editor.png)
 
 ## Author
 Kiruthika
