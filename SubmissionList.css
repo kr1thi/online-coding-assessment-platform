@@ -1,0 +1,67 @@
+
+.submissions-page {
+  padding: 40px;
+  background: #020617;
+  min-height: 100vh;
+  color: white;
+}
+
+.submissions-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  background: #0a0f1e;
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid #1e293b;
+}
+
+.submissions-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.submissions-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.submissions-table th {
+  padding: 15px;
+  border-bottom: 2px solid #1e293b;
+  color: #94a3b8;
+  text-align: left;
+}
+
+.submissions-table td {
+  padding: 15px;
+  border-bottom: 1px solid #1e293b;
+}
+
+.status-pill {
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+/* Green for SUCCESS/Accepted, Red for REJECTED */
+.status-pill.accepted { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+.status-pill.rejected { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+
+.lang-tag {
+  background: #1e293b;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+}
+
+.refresh-btn {
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+}
