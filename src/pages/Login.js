@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GoogleLogin } from '@react-oauth/google';
 
+// FIX: Updated to Railway Live URL
+const BACKEND_URL = "https://online-coding-assessment-platform-production.up.railway.app";
+
 function Login() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({ email: '', password: '' });
@@ -15,20 +18,11 @@ function Login() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // professional security validation function 
   const validatePassword = (password) => {
-    if (password.length < 8) {
-      return "❌ Password must be at least 8 characters long!";
-    }
-    if (!/[A-Z]/.test(password)) {
-      return "❌ Password must contain at least one Uppercase letter!";
-    }
-    if (!/[0-9]/.test(password)) {
-      return "❌ Password must contain at least one Number!";
-    }
-    if (!/[!@#$%^&*]/.test(password)) {
-      return "❌ Password must contain at least one Special Character (@, #, $)!";
-    }
+    if (password.length < 8) return "❌ Password must be at least 8 characters long!";
+    if (!/[A-Z]/.test(password)) return "❌ Password must contain at least one Uppercase letter!";
+    if (!/[0-9]/.test(password)) return "❌ Password must contain at least one Number!";
+    if (!/[!@#$%^&*]/.test(password)) return "❌ Password must contain at least one Special Character (@, #, $)!";
     return null; 
   };
 
@@ -36,15 +30,15 @@ function Login() {
     e.preventDefault();
     setError('');
 
-    //  clientside security check
     const validationError = validatePassword(formData.password);
     if (validationError) {
       setError(validationError);
-      return; // stop here, don't call backend
+      return;
     }
 
     try {
-      const response = await fetch('http://localhost:8082/api/auth/login', {
+      // Updated to use BACKEND_URL
+      const response = await fetch(`${BACKEND_URL}/api/auth/login`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -56,39 +50,30 @@ function Login() {
       if (response.ok) {
         const data = await response.json(); 
         
-        // fixed storage logic
         localStorage.setItem('token', data.token); 
-        localStorage.setItem('studentId', data.studentId); // Backendla irunthu idhu varum
+        localStorage.setItem('studentId', data.studentId);
         localStorage.setItem('userId', data.userId || data.id); 
         localStorage.setItem('userName', data.name || 'User');
         localStorage.setItem('userEmail', data.email || formData.email);
         
         const userRole = data.role ? data.role.toUpperCase() : 'STUDENT';
         localStorage.setItem('role', userRole);
-        console.log("Login Success! Role:", userRole); 
         
-        // navigation logic
         if (userRole === 'ADMIN') {
             window.location.href = '/admin';
-        } 
-        else if (userRole === 'TEACHER') {
+        } else if (userRole === 'TEACHER') {
             window.location.href = '/teacher/dashboard';
-        } 
-        else {
+        } else {
             window.location.href = '/student/dashboard';
         }
 
       } else {
-        if (response.status === 401) {
-          setError("Invalid email or password!");
-        } else if (response.status === 403) {
-          setError("Access Denied: Check your role permissions.");
-        } else {
-          setError("Server error. Please try again later.");
-        }
+        if (response.status === 401) setError("Invalid email or password!");
+        else if (response.status === 403) setError("Access Denied: Check your role permissions.");
+        else setError("Server error. Please try again later.");
       }
     } catch (err) {
-      setError("Cannot connect to Backend. Is Spring Boot running?");
+      setError("Cannot connect to Backend. Contact Admin.");
       console.error("Login Error:", err);
     }
   };
@@ -139,13 +124,13 @@ function Login() {
             <button type="submit" className="glow-btn">Login Now</button>
           </form>
 
-          {/* google login part */}
           <div style={{ marginTop: '20px', textAlign: 'center' }}>
             <p style={{ color: '#64748b', marginBottom: '10px' }}>OR</p>
             <GoogleLogin
               onSuccess={async (credentialResponse) => {
                 try {
-                  const response = await fetch('http://localhost:8082/api/auth/google-login', {
+                  // Updated to use BACKEND_URL
+                  const response = await fetch(`${BACKEND_URL}/api/auth/google-login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ token: credentialResponse.credential })
