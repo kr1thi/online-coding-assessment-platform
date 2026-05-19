@@ -17,7 +17,7 @@ The platform allows admins to create tests and students to attend coding assessm
 ## Features
 - User Registration & Login
 - Role Based Access (Admin / Student)
-- Question Bank Management (MCQ + Coding)
+- Question Bank Management (Coding)
 - Assessment Creation
 - Online Coding Test
 - Code Execution
