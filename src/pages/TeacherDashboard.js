@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -10,12 +11,15 @@ const TeacherDashboard = () => {
     const [selectedAssessmentId, setSelectedAssessmentId] = useState(null);
     const [assessments, setAssessments] = useState([]);
     const [submissions, setSubmissions] = useState([]); 
-    const [students, setStudents] = useState([]); // New state for student data
+    const [students, setStudents] = useState([]); 
     const [loading, setLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
     const [filterStatus, setFilterStatus] = useState("ALL"); 
+
+    // --- NEW STATE FOR MANUAL STUDENT ADD ---
+    const [showAddStudent, setShowAddStudent] = useState(false);
+    const [newStudent, setNewStudent] = useState({ name: '', email: '', studentId: '' });
     
-    // dynamic user data
     const userName = localStorage.getItem('userName') || 'Educator';
     const userEmail = localStorage.getItem('userEmail') || 'Not Available'; 
     const token = localStorage.getItem('token');
@@ -39,7 +43,6 @@ const TeacherDashboard = () => {
     const fetchStudents = useCallback(async () => {
         setLoading(true);
         try {
-            // Updated to fetch student list
             const res = await axios.get('http://localhost:8082/api/admin/students/all', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -66,7 +69,7 @@ const TeacherDashboard = () => {
         }
     }, [token]);
 
-    // --- EFFECTS ---
+    
 
     useEffect(() => {
         if (activeTab === "Manage" || activeTab === "Dashboard") {
@@ -81,6 +84,22 @@ const TeacherDashboard = () => {
     }, [activeTab, selectedAssessmentId, fetchAssessments, fetchTeacherSubmissions, fetchStudents]);
 
     // --- HANDLERS ---
+
+    const handleManualAddStudent = async (e) => {
+        e.preventDefault();
+        try {
+            // Check if your backend endpoint is correct (e.g., /api/admin/students/add)
+            await axios.post('http://localhost:8082/api/admin/students/add', newStudent, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            alert("Student added successfully! ✨");
+            setShowAddStudent(false);
+            setNewStudent({ name: '', email: '', studentId: '' });
+            fetchStudents(); 
+        } catch (err) {
+            alert("Failed to add student. Check if ID or Email is already taken.");
+        }
+    };
 
     const handleViewResults = (id) => {
         setSelectedAssessmentId(id);
@@ -123,7 +142,7 @@ const TeacherDashboard = () => {
         }
     };
 
-    // --- FILTERING ---
+    // filter
 
     const filteredSubmissions = submissions.filter(sub => {
         const matchesSearch = sub.studentId?.toString().toLowerCase().includes(searchTerm.toLowerCase());
@@ -193,7 +212,7 @@ const TeacherDashboard = () => {
                         </div>
                     )}
 
-                    {/* dashboard landing */}
+                    
                     {activeTab === "Dashboard" && (
                         <div style={{ animation: 'fadeIn 0.5s ease' }}>
                             <div style={{ display: 'flex', gap: '20px', marginBottom: '40px' }}>
@@ -228,18 +247,54 @@ const TeacherDashboard = () => {
                         </div>
                     )}
 
-                    {/* NEW: Students List Tab */}
+                    
                     {activeTab === "Students" && (
                         <div style={{ animation: 'fadeIn 0.4s ease' }}>
                              <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px'}}>
                                 <h2 style={{margin: 0}}>Student Directory</h2>
-                                <input 
-                                    type="text" 
-                                    placeholder="Search by name or student ID..." 
-                                    onChange={(e) => setSearchTerm(e.target.value)} 
-                                    style={styles.searchBox} 
-                                />
+                                <div style={{display: 'flex', gap: '15px'}}>
+                                    <button 
+                                        onClick={() => setShowAddStudent(!showAddStudent)} 
+                                        style={styles.primaryBtn}
+                                    >
+                                        {showAddStudent ? "Close Form" : "+ Add Student Manual"}
+                                    </button>
+                                    <input 
+                                        type="text" 
+                                        placeholder="Search by name or student ID..." 
+                                        onChange={(e) => setSearchTerm(e.target.value)} 
+                                        style={styles.searchBox} 
+                                    />
+                                </div>
                             </div>
+
+                            {showAddStudent && (
+                                <form onSubmit={handleManualAddStudent} style={styles.manualAddForm}>
+                                    <input 
+                                        placeholder="Student Name" 
+                                        style={styles.searchBox} 
+                                        value={newStudent.name}
+                                        onChange={(e) => setNewStudent({...newStudent, name: e.target.value})}
+                                        required 
+                                    />
+                                    <input 
+                                        placeholder="Student ID" 
+                                        style={styles.searchBox} 
+                                        value={newStudent.studentId}
+                                        onChange={(e) => setNewStudent({...newStudent, studentId: e.target.value})}
+                                        required 
+                                    />
+                                    <input 
+                                        type="email" 
+                                        placeholder="Email Address" 
+                                        style={styles.searchBox} 
+                                        value={newStudent.email}
+                                        onChange={(e) => setNewStudent({...newStudent, email: e.target.value})}
+                                        required 
+                                    />
+                                    <button type="submit" style={styles.primaryBtn}>Save Student</button>
+                                </form>
+                            )}
 
                             <div style={styles.tableWrapper}>
                                 <table style={{width: '100%', borderCollapse: 'collapse', color: '#fff'}}>
@@ -269,7 +324,7 @@ const TeacherDashboard = () => {
                         </div>
                     )}
 
-                    {/* submission part */}
+                    {/* Submissions Part */}
                     {activeTab === "Submissions" && (
                         <div style={{ animation: 'fadeIn 0.4s ease' }}>
                             <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px'}}>
@@ -327,7 +382,7 @@ const TeacherDashboard = () => {
                         </div>
                     )}
 
-                    {/* teacher create assessment part */}
+                    {/* Create Assessment Part */}
                     {activeTab === "Create" && (
                         <div style={styles.formContainer}>
                             <div style={styles.stepperContainer}>
@@ -367,7 +422,7 @@ const TeacherDashboard = () => {
                         </div>
                     )}
 
-                    {/* 🛠️ MANAGE GRID */}
+                    {/* Manage Grid */}
                     {activeTab === "Manage" && (
                         <div style={{ animation: 'fadeIn 0.5s ease' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
@@ -410,7 +465,6 @@ const TeacherDashboard = () => {
     );
 };
 
-/* --- SUB-COMPONENTS --- */
 const NavItem = ({icon, label, active, onClick}) => (
     <div style={active ? styles.activeNavItem : styles.navItem} onClick={onClick}>
         <span style={{marginRight: '12px', fontSize: '18px'}}>{icon}</span> {label}
@@ -436,97 +490,387 @@ const DashboardActionCard = ({icon, title, desc, onClick}) => (
 );
 
 const styles = {
-    appLayout: { display: 'flex', height: '100vh', background: '#080a10', color: '#e2e8f0', fontFamily: "'Plus Jakarta Sans', sans-serif" },
-    sidebar: { width: '280px', background: '#0f172a', borderRight: '1px solid #1e293b', display: 'flex', flexDirection: 'column', padding: '25px 15px' },
-    brandWrapper: { display: 'flex', alignItems: 'center', gap: '12px', padding: '0 10px 30px 10px' },
-    logoSquare: { width: '35px', height: '35px', background: '#10b981', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', color: '#fff' },
-    brandTitle: { fontSize: '19px', fontWeight: '800', color: '#fff', margin: 0 },
-    proBadge: { fontSize: '10px', background: '#3b82f6', padding: '2px 6px', borderRadius: '4px' },
-    navStyle: { display: 'flex', flexDirection: 'column', gap: '8px', flexGrow: 1 },
-    navItem: { padding: '14px 18px', borderRadius: '12px', cursor: 'pointer', color: '#94a3b8', transition: '0.3s', display: 'flex', alignItems: 'center', fontSize: '15px' },
-    activeNavItem: { padding: '14px 18px', borderRadius: '12px', cursor: 'pointer', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', fontWeight: 'bold', display: 'flex', alignItems: 'center', border: '1px solid rgba(16, 185, 129, 0.2)' },
-    logoutBtn: { padding: '15px', color: '#ef4444', cursor: 'pointer', fontWeight: 'bold', borderTop: '1px solid #1e293b', marginTop: '10px' },
-    mainViewport: { flex: 1, overflowY: 'auto', background: 'linear-gradient(135deg, #0f172a 0%, #020617 100%)' },
-    topHeader: { padding: '20px 50px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(15, 23, 42, 0.7)', backdropFilter: 'blur(12px)', borderBottom: '1px solid rgba(255,255,255,0.05)', position: 'sticky', top: 0, zIndex: 100 },
-    welcomeText: { fontSize: '24px', fontWeight: '800', margin: 0 },
-    breadcrumb: { fontSize: '12px', color: '#64748b', marginTop: '4px' },
-    topProfileHeader: { display: 'flex', alignItems: 'center', gap: '12px', background: '#1e293b', padding: '8px 16px', borderRadius: '30px', cursor: 'pointer' },
-    miniAvatar: { width: '30px', height: '30px', background: '#10b981', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' },
-    miniEmail: { fontSize: '13px', color: '#94a3b8' },
-    content: { padding: '40px 50px' },
-    formCard: {
-        background: '#ffffff', 
-        borderRadius: '16px',
-        padding: '32px',
-        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-        border: '1px solid #e2e8f0',
-        marginBottom: '20px'
+    appLayout: {
+        display: 'flex',
+        height: '100vh',
+        background: '#f5f7fb',
+        color: '#111827',
+        fontFamily: 'Arial, sans-serif'
     },
-    inputGroup: {
-        marginBottom: '20px',
+
+    sidebar: {
+        width: '240px',
+        background: '#ffffff',
+        borderRight: '1px solid #e5e7eb',
         display: 'flex',
         flexDirection: 'column',
-        gap: '8px'
+        padding: '20px'
     },
-    inputField: {
-        padding: '12px',
+
+    brandWrapper: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px',
+        marginBottom: '30px'
+    },
+
+    logoSquare: {
+        width: '32px',
+        height: '32px',
+        background: '#2563eb',
+        borderRadius: '6px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: '#fff',
+        fontWeight: 'bold'
+    },
+
+    brandTitle: {
+        fontSize: '16px',
+        fontWeight: '700',
+        margin: 0
+    },
+
+    proBadge: {
+        fontSize: '10px',
+        background: '#e0e7ff',
+        padding: '2px 6px',
+        borderRadius: '4px',
+        marginLeft: '6px'
+    },
+
+    navStyle: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '6px',
+        flexGrow: 1
+    },
+
+    navItem: {
+        padding: '10px',
+        borderRadius: '6px',
+        cursor: 'pointer',
+        color: '#374151'
+    },
+
+    activeNavItem: {
+        padding: '10px',
+        borderRadius: '6px',
+        background: '#e0e7ff',
+        color: '#1d4ed8',
+        fontWeight: '600',
+        cursor: 'pointer'
+    },
+
+    logoutBtn: {
+        marginTop: '10px',
+        padding: '10px',
+        color: '#dc2626',
+        cursor: 'pointer'
+    },
+
+    mainViewport: {
+        flex: 1,
+        overflowY: 'auto'
+    },
+
+    topHeader: {
+        padding: '20px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        borderBottom: '1px solid #e5e7eb',
+        background: '#ffffff'
+    },
+
+    welcomeText: {
+        fontSize: '20px',
+        margin: 0
+    },
+
+    breadcrumb: {
+        fontSize: '12px',
+        color: '#6b7280'
+    },
+
+    topProfileHeader: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px',
+        cursor: 'pointer'
+    },
+
+    miniAvatar: {
+        width: '30px',
+        height: '30px',
+        background: '#2563eb',
+        borderRadius: '50%',
+        color: '#fff',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+    },
+
+    miniEmail: {
+        fontSize: '13px',
+        color: '#374151'
+    },
+
+    content: {
+        padding: '20px'
+    },
+
+    miniStatCard: {
+        flex: 1,
+        background: '#ffffff',
+        padding: '16px',
         borderRadius: '8px',
-        border: '1px solid #1a395f',
-        fontSize: '14px',
-        outline: 'none',
-        transition: 'border 0.2s'
+        border: '1px solid #e5e7eb'
     },
-    
-    // Cards & Dashboard
-    miniStatCard: { flex: 1, background: 'rgba(30, 41, 59, 0.4)', padding: '24px', borderRadius: '16px', border: '1px solid #334155' },
-    statsRow: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '25px' },
-    card: { background: '#1e293b', padding: '40px 30px', borderRadius: '24px', border: '1px solid #334155', cursor: 'pointer', transition: 'all 0.3s ease' },
-    iconCircle: { width: '50px', height: '50px', background: 'rgba(16, 185, 129, 0.1)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px', fontSize: '24px' },
-    cardDesc: { color: '#94a3b8', fontSize: '14px', lineHeight: '1.6' },
 
-    // Forms & Stepper
-    formContainer: { background: '#0f172a', padding: '40px', borderRadius: '24px', border: '1px solid #1e293b', maxWidth: '1000px', margin: '0 auto' },
-    stepperContainer: { display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '20px', marginBottom: '40px' },
-    stepCircle: { width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' },
-    stepLine: { width: '60px', height: '2px', background: '#1e293b' },
-    stepHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px', background: 'rgba(16, 185, 129, 0.05)', padding: '20px', borderRadius: '16px', border: '1px dashed #10b981' },
+    statsRow: {
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+        gap: '20px'
+    },
 
-    // Tables
-    tableWrapper: { background: '#1e293b', borderRadius: '16px', overflow: 'hidden', border: '1px solid #334155' },
-    tableHeadRow: { background: '#0f172a', textAlign: 'left' },
-    thStyle: { padding: '16px', fontSize: '12px', color: '#94a3b8', textTransform: 'uppercase' },
-    tableRow: { borderBottom: '1px solid #334155' },
-    tdStyle: { padding: '16px', fontSize: '14px' },
+    card: {
+        background: '#ffffff',
+        padding: '20px',
+        borderRadius: '8px',
+        border: '1px solid #e5e7eb',
+        cursor: 'pointer'
+    },
 
-    // Buttons
-    primaryBtn: { background: '#10b981', color: '#000', border: 'none', padding: '12px 24px', borderRadius: '12px', fontWeight: '700', cursor: 'pointer' },
-    addMoreBtn: { background: '#334155', color: '#fff', border: 'none', padding: '10px 18px', borderRadius: '10px', cursor: 'pointer', fontWeight: '600', flex: 2 },
-    deleteBtn: { background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.2)', padding: '10px 18px', borderRadius: '10px', cursor: 'pointer', fontWeight: '600' },
-    editBtn: { background: 'transparent', border: '1px solid #334155', color: '#94a3b8', padding: '10px 18px', borderRadius: '10px', cursor: 'pointer' },
+    iconCircle: {
+        fontSize: '20px',
+        marginBottom: '10px'
+    },
 
-    // Manage Cards
-    manageCard: { background: '#1e293b', padding: '24px', borderRadius: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' },
-    cardHeader: { display: 'flex', justifyContent: 'space-between', marginBottom: '12px' },
-    cardActions: { display: 'flex', gap: '10px', marginTop: '20px' },
-    statusBadgeAct: { background: 'rgba(16, 185, 129, 0.2)', color: '#10b981', padding: '4px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 'bold' },
-    statusBadgeComp: { background: '#334155', color: '#94a3b8', padding: '4px 10px', borderRadius: '6px', fontSize: '11px' },
-    cardInfo: { color: '#94a3b8', fontSize: '13px' },
+    cardDesc: {
+        fontSize: '13px',
+        color: '#6b7280'
+    },
 
-    // Search & Filter
-    searchBox: { padding: '10px 16px', borderRadius: '10px', border: '1px solid #334155', background: '#0f172a', color: '#fff', width: '250px' },
-    filterBox: { padding: '10px 16px', borderRadius: '10px', border: '1px solid #334155', background: '#0f172a', color: '#fff' },
+    formContainer: {
+        background: '#ffffff',
+        padding: '20px',
+        borderRadius: '8px',
+        border: '1px solid #e5e7eb'
+    },
 
-    // Profile Specifics
-    profileContainer: { maxWidth: '900px' },
-    profileHeaderCard: { background: '#1e293b', borderRadius: '24px', overflow: 'hidden', border: '1px solid #334155', marginBottom: '30px' },
-    profileCover: { height: '100px', background: 'linear-gradient(90deg, #10b981, #3b82f6)' },
-    profileInfoArea: { padding: '0 30px 30px 30px', display: 'flex', alignItems: 'center', gap: '20px', marginTop: '-40px' },
-    avatarCircle: { width: '80px', height: '80px', background: '#0f172a', border: '4px solid #1e293b', borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '32px', color: '#10b981', fontWeight: 'bold' },
-    userNameText: { fontSize: '24px', margin: 0, fontWeight: '800' },
-    userSubText: { color: '#64748b', fontSize: '14px' },
-    profileDetailsGrid: { display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px' },
-    infoBox: { background: '#1e293b', padding: '20px', borderRadius: '16px', border: '1px solid #334155', display: 'flex', alignItems: 'center', gap: '15px' },
-    lStyle: { fontSize: '10px', color: '#64748b', fontWeight: 'bold', textTransform: 'uppercase' },
+    stepperContainer: {
+        display: 'flex',
+        justifyContent: 'center',
+        gap: '20px',
+        marginBottom: '20px'
+    },
+
+    stepCircle: {
+        width: '28px',
+        height: '28px',
+        borderRadius: '50%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: '#e5e7eb'
+    },
+
+    stepLine: {
+        width: '40px',
+        height: '2px',
+        background: '#e5e7eb'
+    },
+
+    stepHeader: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        marginBottom: '20px'
+    },
+
+    manualAddForm: {
+        display: 'flex',
+        gap: '10px',
+        marginBottom: '20px',
+        flexWrap: 'wrap'
+    },
+
+    tableWrapper: {
+        background: '#ffffff',
+        border: '1px solid #e5e7eb',
+        borderRadius: '8px',
+        overflow: 'hidden'
+    },
+
+    tableHeadRow: {
+        background: '#f9fafb'
+    },
+
+    thStyle: {
+        padding: '12px',
+        fontSize: '12px',
+        color: '#6b7280',
+        textAlign: 'left'
+    },
+
+    tableRow: {
+        borderTop: '1px solid #2055bd'
+    },
+
+    tdStyle: {
+        padding: '12px',
+        fontSize: '14px',
+        color: '#111827' 
+    },
+
+    primaryBtn: {
+        background: '#2563eb',
+        color: '#fff',
+        border: 'none',
+        padding: '8px 16px',
+        borderRadius: '6px',
+        cursor: 'pointer'
+    },
+
+    addMoreBtn: {
+        background: '#f3f4f6',
+        border: '1px solid #d1d5db',
+        padding: '8px 12px',
+        borderRadius: '6px',
+        cursor: 'pointer'
+    },
+
+    deleteBtn: {
+        background: '#fee2e2',
+        color: '#b91c1c',
+        border: '1px solid #fecaca',
+        padding: '8px 12px',
+        borderRadius: '6px',
+        cursor: 'pointer'
+    },
+
+    editBtn: {
+        background: '#ffffff',
+        border: '1px solid #d1d5db',
+        padding: '8px 12px',
+        borderRadius: '6px',
+        cursor: 'pointer'
+    },
+
+    manageCard: {
+        background: '#e9e7e7',
+        padding: '16px',
+        borderRadius: '8px',
+        border: '1px solid #e5e7eb'
+    },
+
+    cardHeader: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        marginBottom: '10px'
+    },
+
+    cardActions: {
+        display: 'flex',
+        gap: '8px',
+        marginTop: '10px'
+    },
+
+    statusBadgeAct: {
+        background: '#e9e4ea',
+        color: '#166534',
+        padding: '4px 8px',
+        borderRadius: '4px',
+        fontSize: '12px'
+    },
+
+    statusBadgeComp: {
+        background: '#e5e7eb',
+        color: '#374151',
+        padding: '4px 8px',
+        borderRadius: '4px',
+        fontSize: '12px'
+    },
+
+    cardInfo: {
+        fontSize: '13px',
+        color: '#6b7280'
+    },
+
+    searchBox: {
+        padding: '8px',
+        border: '1px solid #d1d5db',
+        borderRadius: '6px'
+    },
+
+    filterBox: {
+        padding: '8px',
+        border: '1px solid #d1d5db',
+        borderRadius: '6px'
+    },
+
+    profileContainer: {
+        maxWidth: '900px'
+    },
+
+    profileHeaderCard: {
+        background: '#ffffff',
+        borderRadius: '8px',
+        border: '1px solid #e5e7eb',
+        marginBottom: '20px'
+    },
+
+    profileCover: {
+        height: '80px',
+        background: '#e5e7eb'
+    },
+
+    profileInfoArea: {
+        padding: '20px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '15px'
+    },
+
+    avatarCircle: {
+        width: '60px',
+        height: '60px',
+        background: '#2563eb',
+        color: '#fff',
+        borderRadius: '50%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+    },
+
+    userNameText: {
+        margin: 0
+    },
+
+    userSubText: {
+        fontSize: '13px',
+        color: '#6b7280'
+    },
+
+    profileDetailsGrid: {
+        display: 'grid',
+        gridTemplateColumns: 'repeat(2, 1fr)',
+        gap: '15px'
+    },
+
+    infoBox: {
+        background: '#ffffff',
+        padding: '15px',
+        borderRadius: '8px',
+        border: '1px solid #e5e7eb',
+        display: 'flex',
+        gap: '10px'
+    },
+
+    lStyle: {
+        fontSize: '12px',
+        color: '#6b7280'
+    }
 };
 
 export default TeacherDashboard;
