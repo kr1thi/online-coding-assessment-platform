@@ -80,7 +80,7 @@ const AdminDashboard = () => {
                 "Teachers": "teachers/all",
                 "Teacher Import": "teachers/all", // Live data for Import View
                 "Assessments": "assessments/all",
-                "Curriculum": "curriculum/all"
+               
             };
 
             if (endpointMap[activeTab]) {
@@ -189,7 +189,7 @@ const AdminDashboard = () => {
 
     const menuGroups = [
         { name: "FOUNDATION", items: ["Institutions", "Batch Years", "Branches"] },
-        { name: "ACADEMICS", items: ["Assessments", "Curriculum"] },
+        
         { name: "USER MANAGEMENT", items: ["Teachers", "Students", "Manage Roles"] },
         { name: "REPOSITORY", items: ["Student Import", "Teacher Import", "Add Problem"] }
     ];
@@ -371,7 +371,7 @@ const AdminDashboard = () => {
                                         </>
                                     )}
 
-                                    {/* --- TEACHER IMPORT + LIVE LIST --- */}
+                                    
                                     {activeTab === "Teacher Import" && (
                                         <>
                                             <ExcelImport 
@@ -486,63 +486,320 @@ const StatBox = ({ title, val, color, icon }) => (
     </div>
 );
 
-//  CSS 
-const appLayout = { display: 'flex', height: '100vh', background: '#0b0f19', color: '#e2e8f0', fontFamily: 'Inter, sans-serif' };
-const sidebarStyle = { width: '260px', background: '#111827', borderRight: '1px solid #1f2937', display: 'flex', flexDirection: 'column' };
-const brandWrapper = { padding: '24px', borderBottom: '1px solid #1f2937' };
-const brandTitle = { fontSize: '18px', fontWeight: '800', color: '#3b82f6', letterSpacing: '1px', margin: 0 };
-const badgeStyle = { fontSize: '10px', background: '#3b82f6', color: '#fff', padding: '2px 6px', borderRadius: '4px', marginLeft: '5px', verticalAlign: 'middle' };
-const navStyle = { padding: '20px', flex: 1, overflowY: 'auto' };
-const menuGroupWrapper = { marginBottom: '25px' };
-const groupLabel = { fontSize: '11px', color: '#4b5563', fontWeight: 'bold', marginBottom: '12px', textTransform: 'uppercase' };
-const navItem = { padding: '12px 15px', borderRadius: '8px', cursor: 'pointer', color: '#9ca3af', fontSize: '14px', transition: '0.3s', display: 'flex', alignItems: 'center' };
-const activeNavItem = { ...navItem, background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6', fontWeight: '600' };
-const mainViewport = { flex: 1, overflowY: 'auto', background: '#0b0f19' };
-const topHeader = { padding: '15px 40px', background: '#111827', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, zIndex: 10, borderBottom: '1px solid #1f2937' };
-const viewTitle = { fontSize: '20px', margin: 0, fontWeight: '700' };
-const breadcrumb = { fontSize: '12px', color: '#6b7280', marginTop: '4px', margin: 0 };
-const contentSection = { padding: '30px 40px' };
-const profilePill = { display: 'flex', alignItems: 'center', gap: '12px', background: '#1f2937', padding: '6px 14px 6px 8px', borderRadius: '50px', border: '1px solid #374151', cursor: 'pointer' };
-const smallAvatar = { width: '32px', height: '32px', borderRadius: '50%', background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: 'bold', color: '#fff' };
-const pillName = { fontSize: '13px', fontWeight: '600', color: '#f3f4f6' };
-const pillRole = { fontSize: '10px', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.5px' };
-const statsGrid = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '30px' };
-const statCard = { background: '#111827', padding: '20px', borderRadius: '12px', border: '1px solid #1f2937', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' };
-const statHeader = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#9ca3af' };
-const statLabel = { fontSize: '13px', fontWeight: '500' };
-const statValue = { fontSize: '28px', margin: '12px 0 0 0', fontWeight: '800', color: '#fff' };
-const cardStyle = { background: '#111827', borderRadius: '12px', padding: '24px', border: '1px solid #1f2937' };
-const cardHeader = { display: 'flex', justifyContent: 'space-between', marginBottom: '25px', alignItems: 'center' };
-const cardTitle = { fontSize: '17px', margin: 0, fontWeight: '600', color: '#f3f4f6' };
-const tableStyle = { width: '100%', borderCollapse: 'collapse' };
-const tableHeaderRow = { textAlign: 'left', borderBottom: '2px solid #1f2937' };
-const thStyle = { padding: '15px 12px', color: '#6b7280', fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px' };
-const tableRow = { borderBottom: '1px solid #1f2937', transition: '0.2s hover', background: 'transparent' };
-const tdStyle = { padding: '16px 12px', color: '#9ca3af', fontSize: '14px' };
-const tdBold = { ...tdStyle, color: '#f3f4f6', fontWeight: '600' };
-const emptyCell = { padding: '60px', textAlign: 'center', color: '#6b7280', fontSize: '15px' };
-const badgeCode = { background: '#1e293b', color: '#3b82f6', border: '1px solid #3b82f6', padding: '3px 8px', borderRadius: '5px', fontSize: '12px', fontWeight: 'bold' };
-const primaryBtn = { background: '#3b82f6', color: '#fff', border: 'none', padding: '10px 18px', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '14px' };
-const secondaryBtn = { background: '#1f2937', color: '#9ca3af', border: '1px solid #374151', padding: '10px 18px', borderRadius: '8px', cursor: 'pointer', fontWeight: '500' };
-const dangerBtn = { background: '#ef4444', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' };
-const actionBtnView = { background: '#f59e0b', color: '#fff', border: 'none', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer' };
-const actionBtnEdit = { background: '#475569', color: '#fff', border: 'none', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer' };
-const actionBtnDelete = { background: '#ef4444', color: '#fff', border: 'none', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer' };
-const formGrid = { display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px' };
-const fGroup = { display: 'flex', flexDirection: 'column', gap: '8px' };
-const lStyle = { fontSize: '11px', color: '#6b7280', fontWeight: '700', letterSpacing: '0.5px' };
-const iBox = { background: '#0b0f19', border: '1px solid #1f2937', padding: '12px', borderRadius: '8px', color: '#fff', outline: 'none', fontSize: '14px' };
-const modalOverlay = { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 };
-const modalContent = { background: '#111827', padding: '30px', borderRadius: '16px', width: '550px', border: '1px solid #1f2937', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.5)' };
+
+
+const appLayout = {
+    display: 'flex',
+    height: '100vh',
+    background: '#0f172a',
+    color: '#e5e7eb',
+    fontFamily: 'Inter, sans-serif'
+};
+
+const sidebarStyle = {
+    width: '240px',
+    background: '#111827',
+    borderRight: '1px solid #1f2937',
+    display: 'flex',
+    flexDirection: 'column'
+};
+
+const brandWrapper = {
+    padding: '20px',
+    borderBottom: '1px solid #1f2937'
+};
+
+const brandTitle = {
+    fontSize: '16px',
+    fontWeight: '700',
+    color: '#a2b9dc',
+    margin: 0
+};
+
+const badgeStyle = {
+    fontSize: '10px',
+    background: '#3b82f6',
+    padding: '2px 6px',
+    borderRadius: '4px',
+    marginLeft: '6px'
+};
+
+const navStyle = {
+    padding: '16px'
+};
+
+const menuGroupWrapper = {
+    marginBottom: '20px'
+};
+
+const groupLabel = {
+    fontSize: '11px',
+    color: '#6b7280',
+    marginBottom: '8px'
+};
+
+const navItem = {
+    padding: '10px',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    color: '#9ca3af',
+    fontSize: '14px'
+};
+
+const activeNavItem = {
+    ...navItem,
+    background: '#1e293b',
+    color: '#3b82f6'
+};
+
+const mainViewport = {
+    flex: 1,
+    overflowY: 'auto'
+};
+
+const topHeader = {
+    padding: '16px 30px',
+    background: '#111827',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderBottom: '1px solid #1f2937'
+};
+
+const viewTitle = {
+    fontSize: '18px',
+    fontWeight: '600'
+};
+
+const breadcrumb = {
+    fontSize: '12px',
+    color: '#6b7280'
+};
+
+const contentSection = {
+    padding: '25px 30px'
+};
+
+const profilePill = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    background: '#1f2937',
+    padding: '6px 10px',
+    borderRadius: '20px'
+};
+
+const smallAvatar = {
+    width: '30px',
+    height: '30px',
+    borderRadius: '50%',
+    background: '#3b82f6',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontWeight: '600'
+};
+
+const pillName = {
+    fontSize: '13px'
+};
+
+const pillRole = {
+    fontSize: '10px',
+    color: '#9ca3af'
+};
+
+const statsGrid = {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+    gap: '15px',
+    marginBottom: '25px'
+};
+
+const statCard = {
+    background: '#111827',
+    padding: '16px',
+    borderRadius: '8px',
+    border: '1px solid #1f2937'
+};
+
+const statHeader = {
+    display: 'flex',
+    justifyContent: 'space-between'
+};
+
+const statLabel = {
+    fontSize: '13px',
+    color: '#9ca3af'
+};
+
+const statValue = {
+    fontSize: '22px',
+    marginTop: '10px',
+    fontWeight: '600'
+};
+
+const cardStyle = {
+    background: '#111827',
+    borderRadius: '8px',
+    padding: '20px',
+    border: '1px solid #1f2937'
+};
+
+const cardHeader = {
+    display: 'flex',
+    justifyContent: 'space-between',
+    marginBottom: '15px'
+};
+
+const cardTitle = {
+    fontSize: '16px',
+    fontWeight: '600'
+};
+
+const tableStyle = {
+    width: '100%',
+    borderCollapse: 'collapse'
+};
+
+const tableHeaderRow = {
+    borderBottom: '1px solid #1f2937'
+};
+
+const thStyle = {
+    padding: '12px',
+    fontSize: '12px',
+    color: '#9ca3af'
+};
+
+const tableRow = {
+    borderBottom: '1px solid #1f2937'
+};
+
+const tdStyle = {
+    padding: '12px',
+    fontSize: '14px',
+    color: '#9ca3af'
+};
+
+const tdBold = {
+    ...tdStyle,
+    color: '#f3f4f6',
+    fontWeight: '500'
+};
+
+const emptyCell = {
+    padding: '40px',
+    textAlign: 'center',
+    color: '#6b7280'
+};
+
+const badgeCode = {
+    background: '#1e293b',
+    padding: '3px 6px',
+    borderRadius: '4px',
+    fontSize: '12px'
+};
+
+const primaryBtn = {
+    background: '#3b82f6',
+    color: '#fff',
+    border: 'none',
+    padding: '8px 14px',
+    borderRadius: '6px',
+    cursor: 'pointer'
+};
+
+const secondaryBtn = {
+    background: '#1f2937',
+    color: '#9ca3af',
+    border: '1px solid #374151',
+    padding: '8px 14px',
+    borderRadius: '6px',
+    cursor: 'pointer'
+};
+
+const dangerBtn = {
+    background: '#ef4444',
+    color: '#fff',
+    border: 'none',
+    padding: '8px 14px',
+    borderRadius: '6px',
+    cursor: 'pointer'
+};
+
+const actionBtnView = {
+    background: '#f59e0b',
+    border: 'none',
+    padding: '5px 8px',
+    borderRadius: '5px',
+    cursor: 'pointer'
+};
+
+const actionBtnEdit = {
+    background: '#6b7280',
+    border: 'none',
+    padding: '5px 8px',
+    borderRadius: '5px',
+    cursor: 'pointer'
+};
+
+const actionBtnDelete = {
+    background: '#ef4444',
+    border: 'none',
+    padding: '5px 8px',
+    borderRadius: '5px',
+    cursor: 'pointer'
+};
+
+const formGrid = {
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    gap: '15px'
+};
+
+const fGroup = {
+    display: 'flex',
+    flexDirection: 'column'
+};
+
+const lStyle = {
+    fontSize: '11px',
+    marginBottom: '5px',
+    color: '#9ca3af'
+};
+
+const iBox = {
+    background: '#020617',
+    border: '1px solid #1f2937',
+    padding: '10px',
+    borderRadius: '6px',
+    color: '#fff'
+};
+
+const modalOverlay = {
+    position: 'fixed',
+    inset: 0,
+    background: 'rgba(0,0,0,0.7)',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center'
+};
+
+const modalContent = {
+    background: '#111827',
+    padding: '25px',
+    borderRadius: '10px',
+    width: '500px'
+};
 
 const spinnerStyle = {
-    width: '40px',
-    height: '40px',
-    border: '4px solid rgba(59, 130, 246, 0.2)',
+    width: '35px',
+    height: '35px',
+    border: '4px solid #1f2937',
     borderTop: '4px solid #3b82f6',
     borderRadius: '50%',
-    animation: 'spin 1s linear infinite',
-    margin: '0 auto'
+    animation: 'spin 1s linear infinite'
 };
 
 export default AdminDashboard;
