@@ -3,33 +3,33 @@ import * as XLSX from "xlsx";
 import axios from "axios";
 
 const API_BASE = "http://localhost:8082/api";
-
 const styles = {
   cardStyle: {
-    background: "#1e293b",
+    background: "#ffffff", // White background
     padding: "30px",
     borderRadius: "12px",
-    border: "1px solid #334155",
+    border: "1px solid #e2e8f0", // Light grey border
     maxWidth: "900px",
-    margin: "40px auto"
+    margin: "40px auto",
+    boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)" // Light shadow
   },
   cardTitle: {
-    color: "#f8fafc",
+    color: "#1e293b", // Dark text
     fontSize: "1.5rem",
     fontWeight: "bold"
   },
   label: {
-    color: "#94a3b8",
+    color: "#475569", // Darker label text
     fontSize: "0.85rem",
     marginBottom: "6px",
     display: "block"
   },
   input: {
-    background: "#0f172a",
-    border: "1px solid #334155",
+    background: "#f8fafc", // Very light grey input
+    border: "1px solid #cbd5e1",
     borderRadius: "8px",
     padding: "10px",
-    color: "white",
+    color: "#1e293b", // Black text
     width: "100%"
   },
   primaryBtn: {
@@ -307,17 +307,19 @@ const AddProblem = () => {
 
   return (
     <div style={styles.cardStyle}>
+      
 
-      <h3 style={styles.cardTitle}>
-        {showBulk ? "Bulk Upload" : "Manual Problem"}
-      </h3>
-
-      <button
-        onClick={() => setShowBulk(!showBulk)}
-        style={styles.secondaryBtn}
-      >
-        {showBulk ? "Switch Manual" : "Switch Bulk"}
-      </button>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+        <h3 style={styles.cardTitle}>
+          {showBulk ? "Bulk Upload" : "Manual Problem"}
+        </h3>
+        <button
+          onClick={() => setShowBulk(!showBulk)}
+          style={styles.secondaryBtn}
+        >
+          {showBulk ? "Switch Manual" : "Switch Bulk"}
+        </button>
+      </div>
 
       <div style={{ marginTop: "20px" }}>
         <label style={styles.label}>Assessment</label>
@@ -385,7 +387,7 @@ const AddProblem = () => {
               required
             />
           </div>
-
+      
           <div style={{ marginTop: "15px" }}>
             <label style={styles.label}>Problem</label>
 
@@ -397,6 +399,30 @@ const AddProblem = () => {
               rows="4"
             />
           </div>
+              {/* Sample Input Field */}
+<div style={{ marginTop: "15px" }}>
+  <label style={styles.label}>Sample Input</label>
+  <textarea
+    name="sampleInput"
+    value={problem.sampleInput}
+    onChange={onChange}
+    style={styles.input}
+    rows="2"
+  />
+</div>
+
+{/* Sample Output Field */}
+<div style={{ marginTop: "15px" }}>
+  <label style={styles.label}>Sample Output</label>
+  <textarea
+    name="sampleOutput"
+    value={problem.sampleOutput}
+    onChange={onChange}
+    style={styles.input}
+    rows="2"
+  />
+</div>
+
 
           <button
             type="submit"
