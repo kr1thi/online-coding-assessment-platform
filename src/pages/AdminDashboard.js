@@ -191,7 +191,7 @@ const AdminDashboard = () => {
         { name: "FOUNDATION", items: ["Institutions", "Batch Years", "Branches"] },
         
         { name: "USER MANAGEMENT", items: ["Teachers", "Students", "Manage Roles"] },
-        { name: "REPOSITORY", items: ["Student Import", "Teacher Import", "Add Problem"] }
+        { name: "REPOSITORY", items: ["Student Import", "Teacher Import"] }
     ];
 
     const sharedStyles = { cardStyle, cardTitle, formGrid, fGroup, lStyle, iBox, primaryBtn, secondaryBtn };
@@ -371,7 +371,7 @@ const AdminDashboard = () => {
                                         </>
                                     )}
 
-                                    
+                                    {/* tEACHER IMPORT */}
                                     {activeTab === "Teacher Import" && (
                                         <>
                                             <ExcelImport 
@@ -395,7 +395,7 @@ const AdminDashboard = () => {
                                         </>
                                     )}
 
-                                    {activeTab === "Add Problem" && <AddProblem token={token} styles={sharedStyles} />}
+                                    {/* {activeTab === "Add Problem" && <AddProblem token={token} styles={sharedStyles} />} */}
                                 </div>
                             )}
                         </>
