@@ -78,8 +78,7 @@ function Register() {
             <div className="input-group">
               <label>Password</label>
               <input name="password" type="password" placeholder="Min 6 characters" value={formData.password} onChange={handleChange} required />
-            </div>
-//role selection dropdown
+
             <div className="input-group">
               <label>I am a:</label>
               <select 
