@@ -10,7 +10,10 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/admin/hierarchy/institutions")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = {
+    "http://localhost:3000",
+    "https://online-coding-assessment-platform.vercel.app"
+})
 public class InstitutionController {
 
     @Autowired 
