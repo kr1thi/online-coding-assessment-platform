@@ -13,7 +13,10 @@ import com.famehub.famehub.service.InstitutionService;
 
 @RestController
 @RequestMapping("/api/admin/branches")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = {
+    "http://localhost:3000",
+    "https://online-coding-assessment-platform.vercel.app"
+})
 public class BranchController {
 
     @Autowired
