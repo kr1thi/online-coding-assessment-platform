@@ -35,7 +35,7 @@ function Register() {
       return;
     }
     try {
-      const response = await fetch('http://localhost:8082/api/auth/register', {
+      const response = await fetch('https://online-coding-assessment-platform-production.up.railway.app/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
