@@ -20,7 +20,10 @@ import com.famehub.famehub.service.JwtUtil;
 @RestController
 @RequestMapping("/api/users")
 // Frontend (React) kuda connect panna origins correct-aa irukanum
-@CrossOrigin(origins = "http://localhost:3000") 
+@CrossOrigin(origins = {
+    "http://localhost:3000",
+    "https://online-coding-assessment-platform.vercel.app"
+})
 public class UserController {
 
     @Autowired private UserService service;
