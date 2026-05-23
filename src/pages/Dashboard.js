@@ -13,7 +13,7 @@ const Dashboard = () => {
                 //  Get token from localStorage for authentication
                 const token = localStorage.getItem('token');
                 
-                const response = await fetch('http://localhost:8082/api/problems/all', {
+               const response = await fetch('https://online-coding-assessment-platform-production.up.railway.app/api/problems/all', {
                     method: 'GET',
                     headers: {
                         'Authorization': `Bearer ${token}`, // ✨ Fix 2: Add Bearer token
