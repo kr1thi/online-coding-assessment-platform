@@ -16,7 +16,10 @@ import com.famehub.famehub.repository.SubmissionRepository;
 
 @RestController
 @RequestMapping("/api/submissions")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = {
+    "http://localhost:3000",
+    "https://online-coding-assessment-platform.vercel.app"
+})
 public class SubmissionController {
 
     @Autowired private SubmissionService submissionService;
