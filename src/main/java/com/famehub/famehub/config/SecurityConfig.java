@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -27,7 +28,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer webSecurityCustomizer() {
+    public WebSecurityCustomizer webSecurityCustomizer() {
         return (web) -> web.ignoring()
                 .requestMatchers("/api/submissions/student/**")
                 .requestMatchers("/api/auth/**");
@@ -47,7 +48,7 @@ public class SecurityConfig {
 
             .authorizeHttpRequests(auth -> auth
 
-                    // OPTIONS request allow
+                    // OPTIONS requests allow
                     .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
                     // Public APIs
@@ -56,17 +57,16 @@ public class SecurityConfig {
                     .requestMatchers("/api/assessment/**").permitAll()
                     .requestMatchers("/api/users/me").permitAll()
 
-                    // Admin Public
+                    // Admin public APIs
                     .requestMatchers("/api/admin/assessment/all").permitAll()
                     .requestMatchers("/api/admin/hierarchy/**").permitAll()
                     .requestMatchers("/api/admin/bulk-upload-students").permitAll()
                     .requestMatchers("/api/admin/bulk-upload-teacher").permitAll()
-                    .requestMatchers("/api/admin/bulk-upload").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/admin/students/all").permitAll()
                     .requestMatchers(HttpMethod.DELETE, "/api/admin/assessment/**").permitAll()
                     .requestMatchers("/api/admin/assessment/public/**").permitAll()
 
-                    // Protected APIs
+                    // Authenticated APIs
                     .requestMatchers("/api/compiler/**").authenticated()
                     .requestMatchers("/api/submissions/**").authenticated()
                     .requestMatchers("/api/users/update").authenticated()
@@ -79,16 +79,19 @@ public class SecurityConfig {
 
                     // Teacher/Admin
                     .requestMatchers("/api/assessment/*/add-questions")
-                    .hasAnyAuthority("ADMIN", "TEACHER");
+                    .hasAnyAuthority("ADMIN", "TEACHER")
 
                     .requestMatchers(HttpMethod.POST, "/api/problems/add")
-                    .hasAnyAuthority("ADMIN", "TEACHER");
+                    .hasAnyAuthority("ADMIN", "TEACHER")
 
-                    // Any other request
+                    // Any remaining request
                     .anyRequest().authenticated()
             );
 
-        http.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(
+                jwtAuthFilter,
+                UsernamePasswordAuthenticationFilter.class
+        );
 
         return http.build();
     }
