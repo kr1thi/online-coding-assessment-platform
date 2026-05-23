@@ -18,7 +18,10 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/admin/teachers")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = {
+    "http://localhost:3000",
+    "https://online-coding-assessment-platform.vercel.app"
+})
 public class TeacherController {
 
     @Autowired private UserRepository userRepository;
