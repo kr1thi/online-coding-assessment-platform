@@ -14,10 +14,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/admin/hierarchy/batches") // Dashboard pathoda match aagum
-@CrossOrigin(origins = {
-    "http://localhost:3000",
-    "https://online-coding-assessment-platform.vercel.app"
-})
+
 public class BatchController {
 
     @Autowired
