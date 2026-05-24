@@ -1,9 +1,6 @@
 package com.famehub.famehub.controller;
 
-
-
 import com.famehub.famehub.entity.Student;
-
 
 import com.famehub.famehub.repository.StudentRepository;
 
@@ -27,10 +24,6 @@ import java.util.List;
 
 @RequestMapping("/api/admin")
 
-@CrossOrigin(origins = {
-    "http://localhost:3000",
-    "https://online-coding-assessment-platform.vercel.app"
-})
 
 public class BulkUploadController {
 
