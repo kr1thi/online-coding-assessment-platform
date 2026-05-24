@@ -48,7 +48,7 @@ public class SecurityConfig {
 
             .authorizeHttpRequests(auth -> auth
 
-                    // OPTIONS requests allow
+                    // OPTIONS request allow
                     .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
                     // Public APIs
@@ -57,7 +57,7 @@ public class SecurityConfig {
                     .requestMatchers("/api/assessment/**").permitAll()
                     .requestMatchers("/api/users/me").permitAll()
 
-                    // Admin public APIs
+                    // Public admin APIs
                     .requestMatchers("/api/admin/assessment/all").permitAll()
                     .requestMatchers("/api/admin/hierarchy/**").permitAll()
                     .requestMatchers("/api/admin/bulk-upload-students").permitAll()
@@ -77,14 +77,14 @@ public class SecurityConfig {
                     .requestMatchers("/api/admin/stats").hasAuthority("ADMIN")
                     .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
 
-                    // Teacher/Admin
+                    // Teacher + Admin
                     .requestMatchers("/api/assessment/*/add-questions")
                     .hasAnyAuthority("ADMIN", "TEACHER")
 
                     .requestMatchers(HttpMethod.POST, "/api/problems/add")
                     .hasAnyAuthority("ADMIN", "TEACHER")
 
-                    // Any remaining request
+                    // Remaining requests
                     .anyRequest().authenticated()
             );
 
