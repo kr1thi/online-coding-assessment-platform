@@ -15,10 +15,7 @@ import java.util.*;
 
 @RestController
 @RequestMapping("/api/problems")
-@CrossOrigin(origins = {
-    "http://localhost:3000",
-    "https://online-coding-assessment-platform.vercel.app"
-})
+
 public class ProblemController {
 
     @Autowired private CodeExecutionService executionService;
