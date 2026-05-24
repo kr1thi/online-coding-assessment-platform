@@ -48,43 +48,17 @@ public class SecurityConfig {
 
             .authorizeHttpRequests(auth -> auth
 
-                    // OPTIONS request allow
                     .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                    // Public APIs
                     .requestMatchers("/api/auth/**").permitAll()
                     .requestMatchers("/api/problems/**").permitAll()
                     .requestMatchers("/api/assessment/**").permitAll()
                     .requestMatchers("/api/users/me").permitAll()
 
-                    // Public admin APIs
-                    .requestMatchers("/api/admin/assessment/all").permitAll()
-                    .requestMatchers("/api/admin/hierarchy/**").permitAll()
-                    .requestMatchers("/api/admin/bulk-upload-students").permitAll()
-                    .requestMatchers("/api/admin/bulk-upload-teacher").permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/admin/students/all").permitAll()
-                    .requestMatchers(HttpMethod.DELETE, "/api/admin/assessment/**").permitAll()
-                    .requestMatchers("/api/admin/assessment/public/**").permitAll()
-
-                    // Authenticated APIs
                     .requestMatchers("/api/compiler/**").authenticated()
                     .requestMatchers("/api/submissions/**").authenticated()
                     .requestMatchers("/api/users/update").authenticated()
-                    .requestMatchers("/api/assessment/run").authenticated()
-                    .requestMatchers("/api/assessment/final-submit").authenticated()
 
-                    // Admin only
-                    .requestMatchers("/api/admin/stats").hasAuthority("ADMIN")
-                    .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
-
-                    // Teacher + Admin
-                    .requestMatchers("/api/assessment/*/add-questions")
-                    .hasAnyAuthority("ADMIN", "TEACHER")
-
-                    .requestMatchers(HttpMethod.POST, "/api/problems/add")
-                    .hasAnyAuthority("ADMIN", "TEACHER")
-
-                    // Remaining requests
                     .anyRequest().authenticated()
             );
 
@@ -106,9 +80,9 @@ public class SecurityConfig {
 
         CorsConfiguration configuration = new CorsConfiguration();
 
-        configuration.setAllowedOriginPatterns(Arrays.asList(
+        configuration.setAllowedOrigins(Arrays.asList(
                 "http://localhost:3000",
-                "https://*.vercel.app"
+                "https://kr1thi-online-coding-assessment-pla.vercel.app"
         ));
 
         configuration.setAllowedMethods(Arrays.asList(
@@ -123,8 +97,6 @@ public class SecurityConfig {
         configuration.setAllowedHeaders(Arrays.asList("*"));
 
         configuration.setAllowCredentials(true);
-
-        configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source =
                 new UrlBasedCorsConfigurationSource();
