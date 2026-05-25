@@ -5,7 +5,6 @@ import java.util.Arrays;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -31,22 +30,17 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
-
-            // Disable CSRF
             .csrf(csrf -> csrf.disable())
 
-            // Enable CORS
-            .cors(Customizer.withDefaults())
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
-            // Stateless Session
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
 
-            // API Authorization
             .authorizeHttpRequests(auth -> auth
 
-                // Allow preflight requests
+                // Allow OPTIONS requests
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
                 // Public APIs
@@ -60,7 +54,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/submissions/**").authenticated()
                 .requestMatchers("/api/users/update").authenticated()
 
-                // Any remaining request
+                // Any other request
                 .anyRequest().authenticated()
             );
 
@@ -83,13 +77,11 @@ public class SecurityConfig {
 
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // Allow Frontend Origins
-        configuration.setAllowedOriginPatterns(Arrays.asList(
+        configuration.setAllowedOrigins(Arrays.asList(
             "http://localhost:3000",
-            "https://*.vercel.app"
+            "https://kr1thi-online-coding-assessment-pla.vercel.app"
         ));
 
-        // Allow Methods
         configuration.setAllowedMethods(Arrays.asList(
             "GET",
             "POST",
@@ -99,21 +91,12 @@ public class SecurityConfig {
             "PATCH"
         ));
 
-        // Allow Headers
         configuration.setAllowedHeaders(Arrays.asList("*"));
 
-        // Expose Headers
-        configuration.setExposedHeaders(Arrays.asList(
-            "Authorization"
-        ));
-
-        // Allow Credentials
         configuration.setAllowCredentials(true);
 
-        // Cache preflight response
         configuration.setMaxAge(3600L);
 
-        // Apply CORS
         UrlBasedCorsConfigurationSource source =
             new UrlBasedCorsConfigurationSource();
 
