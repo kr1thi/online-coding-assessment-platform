@@ -5,6 +5,7 @@ import java.util.Arrays;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -30,17 +31,22 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
+
+            // Disable CSRF
             .csrf(csrf -> csrf.disable())
 
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            // Enable CORS
+            .cors(Customizer.withDefaults())
 
+            // Stateless Session
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
 
+            // API Authorization
             .authorizeHttpRequests(auth -> auth
 
-                // Allow OPTIONS requests
+                // Allow preflight requests
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
                 // Public APIs
@@ -54,7 +60,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/submissions/**").authenticated()
                 .requestMatchers("/api/users/update").authenticated()
 
-                // Any other request
+                // Any remaining request
                 .anyRequest().authenticated()
             );
 
@@ -77,11 +83,13 @@ public class SecurityConfig {
 
         CorsConfiguration configuration = new CorsConfiguration();
 
-        configuration.setAllowedOrigins(Arrays.asList(
+        // Allow Frontend Origins
+        configuration.setAllowedOriginPatterns(Arrays.asList(
             "http://localhost:3000",
-            "https://kr1thi-online-coding-assessment-pla.vercel.app"
+            "https://*.vercel.app"
         ));
 
+        // Allow Methods
         configuration.setAllowedMethods(Arrays.asList(
             "GET",
             "POST",
@@ -91,12 +99,21 @@ public class SecurityConfig {
             "PATCH"
         ));
 
+        // Allow Headers
         configuration.setAllowedHeaders(Arrays.asList("*"));
 
+        // Expose Headers
+        configuration.setExposedHeaders(Arrays.asList(
+            "Authorization"
+        ));
+
+        // Allow Credentials
         configuration.setAllowCredentials(true);
 
+        // Cache preflight response
         configuration.setMaxAge(3600L);
 
+        // Apply CORS
         UrlBasedCorsConfigurationSource source =
             new UrlBasedCorsConfigurationSource();
 
