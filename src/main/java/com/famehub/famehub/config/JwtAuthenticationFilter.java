@@ -32,52 +32,45 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected boolean shouldNotFilter(
-            @NonNull HttpServletRequest request
-    ) throws ServletException {
-
-        String path = request.getServletPath();
-
-        return path.startsWith("/api/auth/");
-    }
-
-    @Override
     protected void doFilterInternal(
             @NonNull HttpServletRequest request,
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
 
-        // IMPORTANT FOR CORS
-        if (request.getMethod().equals("OPTIONS")) {
+        // ✅ SKIP AUTH APIs (VERY IMPORTANT)
+        String path = request.getRequestURI();
+
+        if (path.startsWith("/api/auth")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        // ✅ HANDLE OPTIONS (CORS)
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
             filterChain.doFilter(request, response);
             return;
         }
 
         final String authHeader = request.getHeader("Authorization");
 
-        final String jwt;
-        final String userEmail;
-
-        // No token -> continue
+        // No token → continue without authentication
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        jwt = authHeader.substring(7);
+        final String jwt = authHeader.substring(7);
+        final String userEmail;
 
         try {
-
             userEmail = jwtUtil.extractUsername(jwt);
 
-            if (
-                userEmail != null &&
-                SecurityContextHolder.getContext().getAuthentication() == null
-            ) {
+            if (userEmail != null &&
+                SecurityContextHolder.getContext().getAuthentication() == null) {
 
                 UserDetails userDetails =
-                        this.userDetailsService.loadUserByUsername(userEmail);
+                        userDetailsService.loadUserByUsername(userEmail);
 
                 if (jwtUtil.validateToken(jwt, userDetails)) {
 
@@ -89,22 +82,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                             );
 
                     authToken.setDetails(
-                            new WebAuthenticationDetailsSource()
-                                    .buildDetails(request)
+                            new WebAuthenticationDetailsSource().buildDetails(request)
                     );
 
-                    SecurityContextHolder.getContext()
-                            .setAuthentication(authToken);
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
             }
 
         } catch (Exception e) {
-
             SecurityContextHolder.clearContext();
-
-            System.err.println(
-                    "JWT Validation Error: " + e.getMessage()
-            );
+            System.err.println("JWT Validation Error: " + e.getMessage());
         }
 
         filterChain.doFilter(request, response);
