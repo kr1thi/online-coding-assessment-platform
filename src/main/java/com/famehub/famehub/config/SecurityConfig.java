@@ -40,8 +40,11 @@ public class SecurityConfig {
 
             .authorizeHttpRequests(auth -> auth
 
-                // Allow OPTIONS requests
+                // OPTIONS
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                // AUTH APIs
+                .requestMatchers("/api/auth/**").permitAll()
 
                 // PUBLIC APIs
                 .requestMatchers("/api/problems/**").permitAll()
@@ -57,14 +60,14 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.DELETE, "/api/admin/assessment/**").permitAll()
                 .requestMatchers("/api/admin/assessment/public/**").permitAll()
 
-                // AUTH REQUIRED APIs
+                // AUTH REQUIRED
                 .requestMatchers("/api/compiler/**").authenticated()
                 .requestMatchers("/api/submissions/**").authenticated()
                 .requestMatchers("/api/users/update").authenticated()
                 .requestMatchers("/api/assessment/run").authenticated()
                 .requestMatchers("/api/assessment/final-submit").authenticated()
 
-                // ADMIN ONLY
+                // ADMIN
                 .requestMatchers("/api/admin/stats").hasAuthority("ADMIN")
                 .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
 
@@ -75,11 +78,10 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/problems/add")
                 .hasAnyAuthority("ADMIN", "TEACHER")
 
-                // Remaining requests
+                // OTHER
                 .anyRequest().authenticated()
             );
 
-        // JWT Filter
         http.addFilterBefore(
             jwtAuthFilter,
             UsernamePasswordAuthenticationFilter.class
@@ -100,7 +102,8 @@ public class SecurityConfig {
 
         configuration.setAllowedOriginPatterns(Arrays.asList(
             "http://localhost:3000",
-            "https://*.vercel.app"
+            "https://*.vercel.app",
+            "https://*.railway.app"
         ));
 
         configuration.setAllowedMethods(Arrays.asList(
