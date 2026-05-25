@@ -52,7 +52,7 @@ function CodeEditor() {
     })
     .catch(err => {
         console.error("Fetch error:", err);
-        // Oruvela 403 vandha, backend tokenai reject pannudhunu artham
+       
     });
       
     fetchHistory();
@@ -138,7 +138,7 @@ function CodeEditor() {
       </header>
 
       <div style={{display: 'flex', flex: 1, overflow: 'hidden'}}>
-        {/* Left Panel */}
+     
         <div style={{flex: '0 0 42%', display: 'flex', flexDirection: 'column', borderRight: '1px solid #333', background: '#0a0a0a'}}>
           <div style={{display: 'flex', borderBottom: '1px solid #333', background: '#111'}}>
             <button onClick={() => setActiveTab("description")} style={{padding: '15px 30px', color: activeTab === 'description' ? '#fff' : '#777', background: 'none', border: 'none', borderBottom: activeTab === 'description' ? '3px solid #2563eb' : 'none', cursor: 'pointer', fontWeight: 'bold'}}>Description</button>
@@ -175,7 +175,7 @@ function CodeEditor() {
           </div>
         </div>
 
-        {/* Right Panel */}
+      
         <div style={{flex: 1, display: 'flex', flexDirection: 'column'}}>
           <textarea 
             value={userCode} onChange={(e) => setUserCode(e.target.value)} spellCheck="false"
