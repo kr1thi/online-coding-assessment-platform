@@ -1,11 +1,22 @@
 import React, { useState, useEffect } from 'react';
 
-const BatchForm = ({ branches, token, onSuccess, onCancel, styles, initialData }) => {
+const BatchForm = ({
+    branches,
+    token,
+    onSuccess,
+    onCancel,
+    styles,
+    initialData
+}) => {
+
     const [batchName, setBatchName] = useState('');
     const [branchId, setBranchId] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // Editing mode kaga data va autofill pannuthu
+  
+    const BASE_URL =
+        'https://online-coding-assessment-platform-production.up.railway.app';
+
     useEffect(() => {
         if (initialData) {
             setBatchName(initialData.batchName || '');
@@ -15,98 +26,210 @@ const BatchForm = ({ branches, token, onSuccess, onCancel, styles, initialData }
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!branchId) { alert("Please select a branch!"); return; }
+
+        if (!batchName.trim()) {
+            alert("❌ Please enter batch name!");
+            return;
+        }
+
+        if (!branchId) {
+            alert("❌ Please select a branch!");
+            return;
+        }
 
         setIsSubmitting(true);
-        const headers = { 
-            'Authorization': `Bearer ${token}`, 
-            'Content-Type': 'application/json' 
-        };
-        
-        const payload = { 
-            batchName: batchName.trim(), 
-            branchId: branchId.toString() 
+
+        const headers = {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
         };
 
-        // Edit ah illai New va nu check pannuthu
-        const url = initialData?.id 
-            ? `http://localhost:8082/api/admin/hierarchy/batches/update/${initialData.id}`
-            : 'http://localhost:8082/api/admin/hierarchy/batches/add';
-        
-        const method = initialData?.id ? 'PUT' : 'POST';
+        const payload = {
+            batchName: batchName.trim(),
+            branchId: Number(branchId)
+        };
+
+        const isEdit = initialData?.id;
+
+        const url = isEdit
+            ? `${BASE_URL}/api/admin/hierarchy/batches/update/${initialData.id}`
+            : `${BASE_URL}/api/admin/hierarchy/batches/add`;
+
+        const method = isEdit ? 'PUT' : 'POST';
 
         try {
-            const res = await fetch(url, {
-                method: method,
+
+            const response = await fetch(url, {
+                method,
                 headers,
                 body: JSON.stringify(payload)
             });
 
-            if (res.ok) {
-                alert(initialData?.id ? "✅ Batch Updated!" : "✅ Batch Created!");
+            if (response.ok) {
+
+                const data = await response.json();
+
+                alert(
+                    isEdit
+                        ? "✅ Batch Updated Successfully!"
+                        : "✅ Batch Created Successfully!"
+                );
+
+                // Reset Form
                 setBatchName('');
                 setBranchId('');
-                onSuccess();
+
+                // Refresh Parent Data
+                if (onSuccess) {
+                    onSuccess(data);
+                }
+
             } else {
-                const errorText = await res.text();
-                alert("❌ Error: " + errorText);
+
+                let errorMessage = "Something went wrong";
+
+                try {
+                    const errData = await response.json();
+                    errorMessage =
+                        errData.message ||
+                        errData.error ||
+                        JSON.stringify(errData);
+                } catch {
+                    errorMessage = await response.text();
+                }
+
+                alert(`❌ Error: ${errorMessage}`);
             }
-        } catch (error) { 
-            alert("❌ Server Connection Failed."); 
+
+        } catch (error) {
+
+            console.error("Batch Save Error:", error);
+
+            alert("❌ Server Connection Failed");
+
         } finally {
             setIsSubmitting(false);
         }
     };
 
     return (
-        <div style={styles.cardStyle}>
-            {/* Title dynamic-ah maarum */}
-            <h3 style={styles.cardTitle}>{initialData?.id ? 'Edit Batch' : 'Add New Batch'}</h3>
+        <div
+            style={{
+                ...styles.cardStyle,
+                padding: '25px',
+                border: '1px solid #334155'
+            }}
+        >
+
+            {/* HEADER */}
+            <h3
+                style={{
+                    ...styles.cardTitle,
+                    borderBottom: '1px solid #334155',
+                    paddingBottom: '12px',
+                    marginBottom: '25px'
+                }}
+            >
+                {initialData?.id
+                    ? '✏️ Edit Batch'
+                    : '➕ Add New Batch'}
+            </h3>
+
             <form onSubmit={handleSubmit} style={styles.formGrid}>
-                
+
                 <div style={styles.fGroup}>
-                    <label style={styles.lStyle}>BATCH NAME (Ex: 2021-2025)</label>
-                    <input 
-                        style={styles.iBox} 
-                        required 
-                        value={batchName} 
-                        onChange={e => setBatchName(e.target.value)} 
-                        placeholder="Ex: 2024 Passed Out"
+                    <label
+                        style={{
+                            ...styles.lStyle,
+                            marginBottom: '8px',
+                            display: 'block'
+                        }}
+                    >
+                        BATCH NAME
+                    </label>
+
+                    <input
+                        type="text"
+                        placeholder="Ex: 2021 - 2025"
+                        value={batchName}
+                        onChange={(e) =>
+                            setBatchName(e.target.value)
+                        }
+                        style={styles.iBox}
                         disabled={isSubmitting}
+                        required
                     />
                 </div>
 
                 <div style={styles.fGroup}>
-                    <label style={styles.lStyle}>SELECT BRANCH</label>
-                    <select 
-                        style={styles.iBox} 
-                        required 
-                        value={branchId} 
-                        onChange={e => setBranchId(e.target.value)}
-                        disabled={isSubmitting}
+                    <label
+                        style={{
+                            ...styles.lStyle,
+                            marginBottom: '8px',
+                            display: 'block'
+                        }}
                     >
-                        <option value="">-- Choose Branch --</option>
-                        {branches && branches.map(br => (
-                            <option key={br.id} value={br.id}>
-                                {br.branchName} ({br.branchCode || 'No Code'})
-                            </option>
-                        ))}
+                        SELECT BRANCH
+                    </label>
+
+                    <select
+                        value={branchId}
+                        onChange={(e) =>
+                            setBranchId(e.target.value)
+                        }
+                        style={styles.iBox}
+                        disabled={isSubmitting}
+                        required
+                    >
+                        <option value="">
+                            -- Select Branch --
+                        </option>
+
+                        {branches &&
+                            branches.map((branch) => (
+                                <option
+                                    key={branch.id}
+                                    value={branch.id}
+                                >
+                                    {branch.branchName}
+                                    {branch.branchCode
+                                        ? ` (${branch.branchCode})`
+                                        : ''}
+                                </option>
+                            ))}
                     </select>
                 </div>
 
-                <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-end' }}>
-                    <button 
-                        type="submit" 
-                        style={{ ...styles.primaryBtn, opacity: isSubmitting ? 0.7 : 1 }}
+                <div
+                    style={{
+                        display: 'flex',
+                        gap: '15px',
+                        marginTop: '25px'
+                    }}
+                >
+                    <button
+                        type="submit"
                         disabled={isSubmitting}
+                        style={{
+                            ...styles.primaryBtn,
+                            opacity: isSubmitting ? 0.7 : 1,
+                            cursor: isSubmitting
+                                ? 'not-allowed'
+                                : 'pointer'
+                        }}
                     >
-                        {isSubmitting ? "Processing..." : (initialData?.id ? "Update Batch" : "Save Batch")}
+                        {isSubmitting
+                            ? 'Processing...'
+                            : initialData?.id
+                                ? 'Update Batch'
+                                : 'Save Batch'}
                     </button>
-                    <button 
-                        type="button" 
-                        onClick={onCancel} 
-                        style={styles.secondaryBtn}
+
+                    <button
+                        type="button"
+                        onClick={onCancel}
                         disabled={isSubmitting}
+                        style={styles.secondaryBtn}
                     >
                         Cancel
                     </button>
