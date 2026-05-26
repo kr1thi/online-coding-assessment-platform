@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-
 const API_BASE_URL =
   import.meta.env.VITE_API_URL ||
   'https://online-coding-assessment-platform-production.up.railway.app';
@@ -18,7 +17,7 @@ const AssessmentForm = ({
 
   const [loading, setLoading] = useState(false);
 
-  // ✅ Handle Form Submit
+ 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -30,7 +29,7 @@ const AssessmentForm = ({
     setLoading(true);
 
     try {
-      // ✅ Railway Endpoint
+    
       const apiEndpoint = `${API_BASE_URL}/api/assessment/create`;
 
       const response = await axios.post(
@@ -46,12 +45,11 @@ const AssessmentForm = ({
           }
         }
       );
-
-      // ✅ Success
+    
       if (response.status === 200 || response.status === 201) {
         alert('✅ New Assessment Created Successfully!');
 
-        // ✅ Backend returns saved assessment object
+       
         if (response.data && response.data.id) {
           // Pass Assessment ID to parent
           onSuccess(response.data.id);
@@ -84,7 +82,7 @@ const AssessmentForm = ({
         border: '1px solid #334155'
       }}
     >
-      {/* ✅ Header */}
+     
       <h3
         style={{
           ...styles.cardTitle,
@@ -96,10 +94,8 @@ const AssessmentForm = ({
         Create New Assessment
       </h3>
 
-      {/* ✅ Form */}
       <form onSubmit={handleSubmit} style={styles.formGrid}>
-        
-        {/* Assessment Title */}
+       
         <div style={styles.fGroup}>
           <label
             style={{
@@ -127,7 +123,7 @@ const AssessmentForm = ({
           />
         </div>
 
-        {/* Duration */}
+        
         <div
           style={{
             ...styles.fGroup,
@@ -160,7 +156,7 @@ const AssessmentForm = ({
           />
         </div>
 
-        {/* Buttons */}
+        
         <div
           style={{
             display: 'flex',
@@ -168,7 +164,7 @@ const AssessmentForm = ({
             marginTop: '25px'
           }}
         >
-          {/* Save */}
+     
           <button
             type="submit"
             disabled={loading}
@@ -181,7 +177,6 @@ const AssessmentForm = ({
             {loading ? 'Saving...' : 'Save & Continue'}
           </button>
 
-          {/* Cancel */}
           <button
             type="button"
             onClick={onCancel}
