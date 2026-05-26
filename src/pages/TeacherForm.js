@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import API_BASE_URL from '../api';
 
 const TeacherForm = ({ institutions, token, onSuccess, onCancel, styles }) => {
 
@@ -12,29 +11,38 @@ const TeacherForm = ({ institutions, token, onSuccess, onCancel, styles }) => {
 
     const [loading, setLoading] = useState(false);
 
-    const handleSubmit = async (e) => {
+    const handleChange = (e) => {
+        setTeacherForm({
+            ...teacherForm,
+            [e.target.name]: e.target.value
+        });
+    };
 
+    const handleSubmit = async (e) => {
         e.preventDefault();
+
+        if (!teacherForm.name || !teacherForm.email || !teacherForm.institutionId) {
+            alert("Please fill all required fields");
+            return;
+        }
 
         setLoading(true);
 
-        const headers = {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-        };
-
         try {
 
-            const res = await fetch(
-                `${API_BASE_URL}/api/admin/teachers/add`,
+            const response = await fetch(
+                'https://online-coding-assessment-platform-production.up.railway.app/api/admin/teachers/add',
                 {
                     method: 'POST',
-                    headers,
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
                     body: JSON.stringify(teacherForm)
                 }
             );
 
-            if (res.ok) {
+            if (response.ok) {
 
                 alert("✅ Teacher Registered Successfully!");
 
@@ -45,21 +53,21 @@ const TeacherForm = ({ institutions, token, onSuccess, onCancel, styles }) => {
                     designation: ''
                 });
 
-                onSuccess();
+                if (onSuccess) {
+                    onSuccess();
+                }
 
             } else {
 
-                const errorText = await res.text();
-
-                alert("❌ Failed: " + errorText);
+                const errorText = await response.text();
+                alert("❌ Failed : " + errorText);
 
             }
 
-        } catch (err) {
+        } catch (error) {
 
-            console.error(err);
-
-            alert("❌ Server Connection Error!");
+            console.error("Error :", error);
+            alert("⚠️ Server Connection Failed");
 
         } finally {
 
@@ -71,34 +79,32 @@ const TeacherForm = ({ institutions, token, onSuccess, onCancel, styles }) => {
     return (
         <div style={styles.cardStyle}>
 
-            <h3 style={{
-                ...styles.cardTitle,
-                marginBottom: '20px'
-            }}>
-                Add New Educator
+            <h3
+                style={{
+                    ...styles.cardTitle,
+                    marginBottom: '20px'
+                }}
+            >
+                Add New Teacher
             </h3>
 
-            <form
-                onSubmit={handleSubmit}
-                style={styles.formGrid}
-            >
+            <form onSubmit={handleSubmit} style={styles.formGrid}>
 
+                {/* Teacher Name */}
                 <div style={styles.fGroup}>
                     <label style={styles.lStyle}>
                         FULL NAME
                     </label>
 
                     <input
-                        style={styles.iBox}
-                        required
+                        type="text"
+                        name="name"
+                        placeholder="Enter Teacher Name"
                         value={teacherForm.name}
-                        onChange={(e) =>
-                            setTeacherForm({
-                                ...teacherForm,
-                                name: e.target.value
-                            })
-                        }
+                        onChange={handleChange}
+                        required
                         disabled={loading}
+                        style={styles.iBox}
                     />
                 </div>
 
@@ -108,78 +114,85 @@ const TeacherForm = ({ institutions, token, onSuccess, onCancel, styles }) => {
                     </label>
 
                     <input
-                        style={styles.iBox}
                         type="email"
-                        required
+                        name="email"
+                        placeholder="Enter Email"
                         value={teacherForm.email}
-                        onChange={(e) =>
-                            setTeacherForm({
-                                ...teacherForm,
-                                email: e.target.value
-                            })
-                        }
+                        onChange={handleChange}
+                        required
                         disabled={loading}
+                        style={styles.iBox}
                     />
                 </div>
 
                 <div style={styles.fGroup}>
                     <label style={styles.lStyle}>
-                        INSTITUTION
+                        DESIGNATION
+                    </label>
+
+                    <input
+                        type="text"
+                        name="designation"
+                        placeholder="Ex : Assistant Professor"
+                        value={teacherForm.designation}
+                        onChange={handleChange}
+                        disabled={loading}
+                        style={styles.iBox}
+                    />
+                </div>
+
+                <div style={styles.fGroup}>
+                    <label style={styles.lStyle}>
+                        SELECT INSTITUTION
                     </label>
 
                     <select
-                        style={styles.iBox}
-                        required
+                        name="institutionId"
                         value={teacherForm.institutionId}
-                        onChange={(e) =>
-                            setTeacherForm({
-                                ...teacherForm,
-                                institutionId: e.target.value
-                            })
-                        }
+                        onChange={handleChange}
+                        required
                         disabled={loading}
+                        style={styles.iBox}
                     >
-
                         <option value="">
-                            -- Select College --
+                            -- Select Institution --
                         </option>
 
-                        {institutions.map((inst) => (
-                            <option
-                                key={inst.id}
-                                value={inst.id}
-                            >
-                                {inst.name}
-                            </option>
-                        ))}
-
+                        {institutions &&
+                            institutions.map((inst) => (
+                                <option key={inst.id} value={inst.id}>
+                                    {inst.name}
+                                </option>
+                            ))
+                        }
                     </select>
                 </div>
 
-                <div style={{
-                    display: 'flex',
-                    alignItems: 'flex-end',
-                    gap: '10px'
-                }}>
+             
+                <div
+                    style={{
+                        display: 'flex',
+                        gap: '10px',
+                        marginTop: '10px'
+                    }}
+                >
 
                     <button
                         type="submit"
+                        disabled={loading}
                         style={{
                             ...styles.primaryBtn,
                             opacity: loading ? 0.7 : 1
                         }}
-                        disabled={loading}
                     >
-                        {loading
-                            ? "Registering..."
-                            : "Register Teacher"}
+                        {loading ? "Registering..." : "Register Teacher"}
                     </button>
 
                     <button
                         type="button"
                         onClick={onCancel}
-                        style={styles.secondaryBtn}
                         disabled={loading}
+                        style={styles.secondaryBtn}
                     >
                         Cancel
                     </button>
@@ -187,6 +200,7 @@ const TeacherForm = ({ institutions, token, onSuccess, onCancel, styles }) => {
                 </div>
 
             </form>
+
         </div>
     );
 };
