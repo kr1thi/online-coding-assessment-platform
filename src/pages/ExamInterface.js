@@ -13,7 +13,7 @@ const ExamInterface = () => {
    const { id } = useParams();
     const navigate = useNavigate();
 
-    
+  
     const [questions, setQuestions] = useState([]);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [answers, setAnswers] = useState({});
@@ -37,9 +37,7 @@ const ExamInterface = () => {
     const [sidebarWidth, setSidebarWidth] = useState(350);
     const [consoleHeight, setConsoleHeight] = useState(240);
     const [isResizing, setIsResizing] = useState(false);
-   
-
-    const API_BASE =
+   const API_BASE =
   process.env.REACT_APP_API_URL ||
   "https://online-coding-assessment-platform-production.up.railway.app/api/assessment";
     const token = localStorage.getItem('token');
