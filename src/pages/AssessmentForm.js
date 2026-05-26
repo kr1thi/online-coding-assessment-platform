@@ -3,7 +3,6 @@ import axios from 'axios';
 const API_BASE_URL =
   import.meta.env.VITE_API_URL ||
   'https://online-coding-assessment-platform-production.up.railway.app';
-
 const AssessmentForm = ({
   token,
   onSuccess,
