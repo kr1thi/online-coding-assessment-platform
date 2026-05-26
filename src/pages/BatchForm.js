@@ -13,10 +13,11 @@ const BatchForm = ({
     const [branchId, setBranchId] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-  
+    
     const BASE_URL =
         'https://online-coding-assessment-platform-production.up.railway.app';
 
+    // Edit Mode Autofill
     useEffect(() => {
         if (initialData) {
             setBatchName(initialData.batchName || '');
@@ -24,6 +25,7 @@ const BatchForm = ({
         }
     }, [initialData]);
 
+    // Submit function
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -65,6 +67,7 @@ const BatchForm = ({
                 body: JSON.stringify(payload)
             });
 
+        
             if (response.ok) {
 
                 const data = await response.json();
@@ -121,7 +124,7 @@ const BatchForm = ({
             }}
         >
 
-            {/* HEADER */}
+         
             <h3
                 style={{
                     ...styles.cardTitle,
@@ -135,8 +138,10 @@ const BatchForm = ({
                     : '➕ Add New Batch'}
             </h3>
 
+          ]
             <form onSubmit={handleSubmit} style={styles.formGrid}>
 
+                {/* BATCH NAME */}
                 <div style={styles.fGroup}>
                     <label
                         style={{
@@ -161,6 +166,7 @@ const BatchForm = ({
                     />
                 </div>
 
+               
                 <div style={styles.fGroup}>
                     <label
                         style={{
@@ -200,6 +206,7 @@ const BatchForm = ({
                     </select>
                 </div>
 
+            
                 <div
                     style={{
                         display: 'flex',
