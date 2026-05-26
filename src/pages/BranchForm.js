@@ -14,6 +14,7 @@ const BranchForm = ({
     const [institutionId, setInstitutionId] = useState('');
     const [loading, setLoading] = useState(false);
 
+
     const BASE_URL =
         'https://online-coding-assessment-platform-production.up.railway.app';
 
@@ -50,14 +51,12 @@ const BranchForm = ({
             'Content-Type': 'application/json'
         };
 
-        
         const payload = {
             branchName: branchName.trim(),
             branchCode: branchCode.trim(),
             institutionId: Number(institutionId)
         };
 
-        // ✅ Create OR Update
         const isEdit = initialData?.id;
 
         const url = isEdit
@@ -74,7 +73,7 @@ const BranchForm = ({
                 body: JSON.stringify(payload)
             });
 
-           
+      
             if (response.ok) {
 
                 const data = await response.json();
@@ -90,7 +89,7 @@ const BranchForm = ({
                 setBranchCode('');
                 setInstitutionId('');
 
-              
+                // Refresh Parent Component
                 if (onSuccess) {
                     onSuccess(data);
                 }
@@ -149,6 +148,7 @@ const BranchForm = ({
                     : '➕ Add New Branch'}
             </h3>
 
+    
             <form onSubmit={handleSubmit} style={styles.formGrid}>
 
                 <div style={styles.fGroup}>
@@ -175,7 +175,6 @@ const BranchForm = ({
                     />
                 </div>
 
-             
                 <div style={styles.fGroup}>
                     <label
                         style={{
@@ -200,7 +199,6 @@ const BranchForm = ({
                     />
                 </div>
 
-             
                 <div style={styles.fGroup}>
                     <label
                         style={{
@@ -237,7 +235,7 @@ const BranchForm = ({
                     </select>
                 </div>
 
-           
+              
                 <div
                     style={{
                         display: 'flex',
