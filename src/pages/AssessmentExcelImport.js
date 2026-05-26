@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import * as XLSX from 'xlsx';
 import axios from 'axios';
 
-// ✅ Railway Production URL
 const API_BASE_URL =
   import.meta.env.VITE_API_URL ||
   'https://online-coding-assessment-platform-production.up.railway.app';
@@ -18,7 +17,6 @@ const AssessmentExcelImport = ({
   const [rawFile, setRawFile] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // ✅ File Upload Handler
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
 
@@ -41,7 +39,6 @@ const AssessmentExcelImport = ({
 
         const worksheet = workbook.Sheets[sheetName];
 
-        // ✅ Excel → JSON Preview
         const data = XLSX.utils.sheet_to_json(worksheet);
 
         setFileData(data);
@@ -54,7 +51,7 @@ const AssessmentExcelImport = ({
     reader.readAsBinaryString(file);
   };
 
-  // ✅ Upload Excel to Backend
+ 
   const uploadToBackend = async () => {
     if (!rawFile) {
       alert('Please select a file!');
@@ -68,7 +65,7 @@ const AssessmentExcelImport = ({
 
       formData.append('file', rawFile);
 
-      // ✅ Railway Endpoint
+    
       const apiEndpoint = `${API_BASE_URL}/api/assessment/${assessmentId}/upload`;
 
       const response = await axios.post(apiEndpoint, formData, {
@@ -84,12 +81,12 @@ const AssessmentExcelImport = ({
         }`
       );
 
-      // ✅ Reset States
+     
       setFileData([]);
       setFileName('');
       setRawFile(null);
 
-      // ✅ Refresh Parent Component
+      
       if (onSuccess) {
         onSuccess();
       }
@@ -129,7 +126,7 @@ const AssessmentExcelImport = ({
         Selected File: {fileName || 'No file selected'}
       </p>
 
-      {/* ✅ Upload Controls */}
+     
       <div
         style={{
           display: 'flex',
@@ -169,7 +166,7 @@ const AssessmentExcelImport = ({
         )}
       </div>
 
-      {/* ✅ Preview Table */}
+     
       {fileData.length > 0 && (
         <div
           style={{
