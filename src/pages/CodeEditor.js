@@ -69,7 +69,7 @@ function CodeEditor() {
 
     try {
       if (isSubmit) {
-        // Backend submit call with JWT header
+    
         const res = await axios.post(`http://localhost:8082/api/submissions/submit`, {
           code: userCode, 
           language: language,
