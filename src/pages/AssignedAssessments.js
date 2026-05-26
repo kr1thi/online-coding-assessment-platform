@@ -12,14 +12,13 @@ const AssignedAssessments = () => {
     const token = localStorage.getItem('token');
     const userId = localStorage.getItem('userId');
 
-    //  Backend URL
+  
     const BASE_URL = 'https://online-coding-assessment-platform-production.up.railway.app';
 
     useEffect(() => {
         const fetchAssessments = async () => {
             try {
 
-                //  Get all assessments
                 const assessmentRes = await axios.get(
                     `${BASE_URL}/api/assessment/all`,
                     {
@@ -29,7 +28,7 @@ const AssignedAssessments = () => {
                     }
                 );
 
-                // ✅ Get completed assessments/results
+                
                 let results = [];
 
                 try {
@@ -73,6 +72,7 @@ const AssignedAssessments = () => {
         }
     }, [token, userId]);
 
+    // loading Screen
     if (loading) {
         return (
             <div
@@ -104,6 +104,7 @@ const AssignedAssessments = () => {
         >
             <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
 
+                
                 <div
                     style={{
                         display: 'flex',
@@ -142,6 +143,7 @@ const AssignedAssessments = () => {
                     </button>
                 </div>
 
+               
                 {assessments.length === 0 ? (
                     <div
                         style={{
@@ -166,6 +168,7 @@ const AssignedAssessments = () => {
                     </div>
                 ) : (
 
+                    // Assessment 
                     <div
                         style={{
                             display: 'grid',
@@ -244,7 +247,7 @@ const AssignedAssessments = () => {
                     </div>
                 )}
 
-                
+              
                 {completedAssessments.length > 0 && (
                     <div
                         style={{
