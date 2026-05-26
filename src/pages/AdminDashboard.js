@@ -7,9 +7,9 @@ import BranchForm from "./BranchForm";
 import BatchForm from "./BatchForm";
 import ExcelImport from "./ExcelImport";
 import ManageRoles from "./ManageRoles";
-
 const API_BASE =
-  process.env.REACT_APP_API_URL || "http://localhost:8082";
+  process.env.REACT_APP_API_URL ||
+  "https://online-coding-assessment-platform-production.up.railway.app";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
