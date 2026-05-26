@@ -20,6 +20,7 @@ const AssessmentPage = () => {
       try {
         setLoading(true);
 
+       
         const assessmentRes = await axios.get(
           `${API_BASE_URL}/api/assessment/all`,
           {
@@ -46,7 +47,7 @@ const AssessmentPage = () => {
           console.log('No results found.');
         }
 
-      
+        
         if (assessmentRes.data) {
           const activeTests = assessmentRes.data.filter((test) => {
             const isCompleted = resultsData.some(
@@ -63,7 +64,7 @@ const AssessmentPage = () => {
 
         setAssignedTests([]);
 
-     
+         
         if (err.response?.status === 401) {
           alert('Session expired. Please login again.');
 
@@ -82,7 +83,6 @@ const AssessmentPage = () => {
       navigate('/login');
     }
   }, [userId, token, navigate]);
-
 
   if (loading) {
     return (
@@ -141,7 +141,7 @@ const AssessmentPage = () => {
           margin: '0 auto'
         }}
       >
-        {/* ✅ Header */}
+        
         <div
           style={{
             display: 'flex',
@@ -182,7 +182,7 @@ const AssessmentPage = () => {
           </button>
         </div>
 
-        
+      
         <div
           style={{
             display: 'grid',
@@ -267,7 +267,7 @@ const AssessmentPage = () => {
               </div>
             ))
           ) : (
-            // ✅ Empty State
+          
             <div
               style={{
                 textAlign: 'center',
