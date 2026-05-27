@@ -4,27 +4,20 @@ import axios from 'axios';
 import AddProblem from './AddProblem';
 import AssessmentForm from './AssessmentForm';
 
-
 const API_BASE = "https://online-coding-assessment-platform-production.up.railway.app";
 
 const TeacherDashboard = () => {
-
     const navigate = useNavigate();
-
     const [activeTab, setActiveTab] = useState("Dashboard");
     const [selectedAssessmentId, setSelectedAssessmentId] = useState(null);
-
     const [assessments, setAssessments] = useState([]);
     const [submissions, setSubmissions] = useState([]);
     const [students, setStudents] = useState([]);
-
     const [loading, setLoading] = useState(false);
-
     const [searchTerm, setSearchTerm] = useState("");
     const [filterStatus, setFilterStatus] = useState("ALL");
 
     const [showAddStudent, setShowAddStudent] = useState(false);
-
     const [newStudent, setNewStudent] = useState({
         name: '',
         email: '',
@@ -38,11 +31,8 @@ const TeacherDashboard = () => {
    
 
     const fetchAssessments = useCallback(async () => {
-
         setLoading(true);
-
         try {
-
             const res = await axios.get(
                 `${API_BASE}/api/admin/assessment/all`,
                 {
@@ -53,26 +43,19 @@ const TeacherDashboard = () => {
             );
 
             setAssessments(res.data);
-
         } catch (err) {
-
             console.error("Error fetching assessments", err);
-
         } finally {
-
             setLoading(false);
         }
-
     }, [token]);
 
   
 
     const fetchStudents = useCallback(async () => {
-
         setLoading(true);
 
         try {
-
             const res = await axios.get(
                 `${API_BASE}/api/admin/students/all`,
                 {
@@ -83,27 +66,21 @@ const TeacherDashboard = () => {
             );
 
             setStudents(res.data);
-
         } catch (err) {
-
             console.error("Error fetching students", err);
-
         } finally {
-
             setLoading(false);
         }
-
     }, [token]);
 
+   
 
     const fetchTeacherSubmissions = useCallback(async (assessmentId) => {
-
         if (!assessmentId) return;
 
         setLoading(true);
 
         try {
-
             const res = await axios.get(
                 `${API_BASE}/api/assessment/teacher/${assessmentId}/results`,
                 {
@@ -114,16 +91,11 @@ const TeacherDashboard = () => {
             );
 
             setSubmissions(res.data);
-
         } catch (err) {
-
             console.error("Submissions error:", err);
-
         } finally {
-
             setLoading(false);
         }
-
     }, [token]);
 
 
@@ -149,9 +121,8 @@ const TeacherDashboard = () => {
         fetchStudents
     ]);
 
-
+   
     const handleManualAddStudent = async (e) => {
-
         e.preventDefault();
 
         try {
@@ -179,51 +150,46 @@ const TeacherDashboard = () => {
             fetchStudents();
 
         } catch (err) {
-
-            console.error(err);
-
             alert("Failed to add student.");
         }
     };
 
+   
 
     const handleViewResults = (id) => {
-
         setSelectedAssessmentId(id);
-
         setActiveTab("Submissions");
-
         fetchTeacherSubmissions(id);
     };
 
+  
 
     const handleDeleteAssessment = async (id) => {
 
-        if (!window.confirm("Are you sure?")) return;
+        if (window.confirm("Are you sure?")) {
 
-        try {
+            try {
 
-            await axios.delete(
-                `${API_BASE}/api/admin/assessment/${id}`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`
+                await axios.delete(
+                    `${API_BASE}/api/admin/assessment/${id}`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token}`
+                        }
                     }
-                }
-            );
+                );
 
-            setAssessments(prev =>
-                prev.filter(asm => asm.id !== id)
-            );
+                setAssessments(prev =>
+                    prev.filter(asm => asm.id !== id)
+                );
 
-        } catch (err) {
-
-            console.error(err);
-
-            alert("Delete failed");
+            } catch (err) {
+                alert("Delete failed.");
+            }
         }
     };
 
+   
 
     const handleFinishAssessment = async () => {
 
@@ -242,29 +208,36 @@ const TeacherDashboard = () => {
             alert("Assessment Completed!");
 
             setSelectedAssessmentId(null);
-
             setActiveTab("Manage");
 
             fetchAssessments();
 
         } catch (err) {
-
             console.error(err);
         }
     };
 
+    // ---------------- LOGOUT ----------------
+
     const handleLogout = () => {
 
-        localStorage.clear();
+        if (window.confirm("Logout?")) {
 
-        navigate('/login', { replace: true });
+            localStorage.clear();
+
+            navigate('/login', {
+                replace: true
+            });
+        }
     };
 
+    
 
     const filteredSubmissions = submissions.filter(sub => {
 
         const matchesSearch =
-            sub.studentId?.toString()
+            sub.studentId
+                ?.toString()
                 .toLowerCase()
                 .includes(searchTerm.toLowerCase());
 
@@ -276,333 +249,309 @@ const TeacherDashboard = () => {
     });
 
     const filteredStudents = students.filter(std =>
-
         std.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-
         std.studentId?.toString().includes(searchTerm)
     );
 
-   
-
     return (
-
         <div style={styles.appLayout}>
+
+            {/* SIDEBAR */}
 
             <aside style={styles.sidebar}>
 
-                <h2>Teacher Dashboard</h2>
+                <div style={styles.brandWrapper}>
+                    <div style={styles.logoSquare}>F</div>
 
-                <button onClick={() => setActiveTab("Dashboard")}>
-                    Dashboard
-                </button>
+                    <h2 style={styles.brandTitle}>
+                        FAMEHUB
+                    </h2>
+                </div>
 
-                <button onClick={() => setActiveTab("Students")}>
-                    Students
-                </button>
+                <nav style={styles.navStyle}>
 
-                <button onClick={() => setActiveTab("Create")}>
-                    Create Assessment
-                </button>
+                    <NavItem
+                        icon="📊"
+                        label="Dashboard"
+                        active={activeTab === "Dashboard"}
+                        onClick={() => {
+                            setActiveTab("Dashboard");
+                            setSelectedAssessmentId(null);
+                        }}
+                    />
 
-                <button onClick={() => setActiveTab("Manage")}>
-                    Manage Tests
-                </button>
+                    <NavItem
+                        icon="👤"
+                        label="Profile"
+                        active={activeTab === "Profile"}
+                        onClick={() => {
+                            setActiveTab("Profile");
+                            setSelectedAssessmentId(null);
+                        }}
+                    />
 
-                <button onClick={() => setActiveTab("Submissions")}>
-                    Submissions
-                </button>
+                    <NavItem
+                        icon="🧑‍🎓"
+                        label="Students"
+                        active={activeTab === "Students"}
+                        onClick={() => {
+                            setActiveTab("Students");
+                            setSelectedAssessmentId(null);
+                        }}
+                    />
 
-                <button onClick={handleLogout}>
-                    Logout
-                </button>
+                    <NavItem
+                        icon="📝"
+                        label="Create"
+                        active={activeTab === "Create"}
+                        onClick={() => {
+                            setActiveTab("Create");
+                            setSelectedAssessmentId(null);
+                        }}
+                    />
+
+                    <NavItem
+                        icon="🛠️"
+                        label="Manage"
+                        active={activeTab === "Manage"}
+                        onClick={() => {
+                            setActiveTab("Manage");
+                            setSelectedAssessmentId(null);
+                        }}
+                    />
+
+                    <NavItem
+                        icon="📑"
+                        label="Submissions"
+                        active={activeTab === "Submissions"}
+                        onClick={() => setActiveTab("Submissions")}
+                    />
+
+                    <div style={{ flexGrow: 1 }}></div>
+
+                    <div
+                        style={styles.logoutBtn}
+                        onClick={handleLogout}
+                    >
+                        🚪 Logout
+                    </div>
+
+                </nav>
 
             </aside>
 
+            {/* MAIN */}
+
             <main style={styles.mainViewport}>
 
-                <h1>Welcome back, {userName}</h1>
-
-
-                {activeTab === "Dashboard" && (
+                <header style={styles.topHeader}>
 
                     <div>
+                        <h1 style={styles.welcomeText}>
+                            Welcome back, {userName}!
+                        </h1>
 
-                        <h2>Total Assessments: {assessments.length}</h2>
+                        <p style={styles.breadcrumb}>
+                            System / {activeTab}
+                        </p>
+                    </div>
 
-                        <h2>Total Students: {students.length}</h2>
+                    <div
+                        style={styles.topProfileHeader}
+                        onClick={() => setActiveTab("Profile")}
+                    >
+
+                        <div style={styles.miniAvatar}>
+                            {userName.charAt(0)}
+                        </div>
+
+                        <span style={styles.miniEmail}>
+                            {userEmail}
+                        </span>
 
                     </div>
-                )}
 
-           
+                </header>
 
-                {activeTab === "Students" && (
+                <div style={styles.content}>
 
-                    <div>
 
-                        <button
-                            onClick={() =>
-                                setShowAddStudent(!showAddStudent)
-                            }
-                        >
-                            Add Student
-                        </button>
+                    {activeTab === "Dashboard" && (
 
-                        <input
-                            type="text"
-                            placeholder="Search..."
-                            onChange={(e) =>
-                                setSearchTerm(e.target.value)
-                            }
-                        />
+                        <div>
 
-                        {showAddStudent && (
+                            <div
+                                style={{
+                                    display: 'flex',
+                                    gap: '20px',
+                                    marginBottom: '40px'
+                                }}
+                            >
 
-                            <form onSubmit={handleManualAddStudent}>
+                                <div style={styles.miniStatCard}>
+                                    <span>Total Assessments</span>
+                                    <h2>{assessments.length}</h2>
+                                </div>
 
-                                <input
-                                    placeholder="Student Name"
-                                    value={newStudent.name}
-                                    onChange={(e) =>
-                                        setNewStudent({
-                                            ...newStudent,
-                                            name: e.target.value
-                                        })
-                                    }
-                                />
+                                <div style={styles.miniStatCard}>
+                                    <span>Students</span>
+                                    <h2>{students.length}</h2>
+                                </div>
 
-                                <input
-                                    placeholder="Student ID"
-                                    value={newStudent.studentId}
-                                    onChange={(e) =>
-                                        setNewStudent({
-                                            ...newStudent,
-                                            studentId: e.target.value
-                                        })
-                                    }
-                                />
+                            </div>
 
-                                <input
-                                    type="email"
-                                    placeholder="Email"
-                                    value={newStudent.email}
-                                    onChange={(e) =>
-                                        setNewStudent({
-                                            ...newStudent,
-                                            email: e.target.value
-                                        })
-                                    }
-                                />
+                        </div>
+                    )}
 
-                                <button type="submit">
-                                    Save
-                                </button>
+                    {/* STUDENTS */}
 
-                            </form>
-                        )}
+                    {activeTab === "Students" && (
 
-                        <table>
+                        <div>
 
-                            <thead>
-
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Name</th>
-                                    <th>Email</th>
-                                </tr>
-
-                            </thead>
-
-                            <tbody>
-
-                                {filteredStudents.map((std, i) => (
-
-                                    <tr key={i}>
-
-                                        <td>{std.studentId}</td>
-
-                                        <td>{std.name}</td>
-
-                                        <td>{std.email}</td>
-
-                                    </tr>
-                                ))}
-
-                            </tbody>
-
-                        </table>
-
-                    </div>
-                )}
-
-                {activeTab === "Create" && (
-
-                    <div>
-
-                        {!selectedAssessmentId ? (
-
-                            <AssessmentForm
-                                token={token}
-                                styles={styles}
-                                onSuccess={(id) =>
-                                    setSelectedAssessmentId(id)
-                                }
-                                onCancel={() =>
-                                    setActiveTab("Dashboard")
-                                }
-                            />
-
-                        ) : (
-
-                            <div>
+                            <div
+                                style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    marginBottom: '20px'
+                                }}
+                            >
 
                                 <button
+                                    style={styles.primaryBtn}
                                     onClick={() =>
-                                        setSelectedAssessmentId(null)
+                                        setShowAddStudent(!showAddStudent)
                                     }
                                 >
-                                    Back
+                                    Add Student
                                 </button>
 
-                                <button
-                                    onClick={handleFinishAssessment}
-                                >
-                                    Go Live
-                                </button>
-
-                                <AddProblem
-                                    token={token}
-                                    styles={styles}
-                                    assessmentId={selectedAssessmentId}
+                                <input
+                                    type="text"
+                                    placeholder="Search..."
+                                    style={styles.searchBox}
+                                    onChange={(e) =>
+                                        setSearchTerm(e.target.value)
+                                    }
                                 />
 
                             </div>
-                        )}
 
-                    </div>
-                )}
+                            {showAddStudent && (
 
-                {activeTab === "Manage" && (
-
-                    <div>
-
-                        <h2>Manage Assessments</h2>
-
-                        {loading ? (
-
-                            <p>Loading...</p>
-
-                        ) : (
-
-                            assessments.map(asm => (
-
-                                <div
-                                    key={asm.id}
-                                    style={styles.manageCard}
+                                <form
+                                    onSubmit={handleManualAddStudent}
+                                    style={styles.manualAddForm}
                                 >
 
-                                    <h3>{asm.title}</h3>
-
-                                    <p>
-                                        Duration: {asm.duration} mins
-                                    </p>
-
-                                    <button
-                                        onClick={() =>
-                                            handleViewResults(asm.id)
+                                    <input
+                                        placeholder="Student Name"
+                                        style={styles.searchBox}
+                                        value={newStudent.name}
+                                        onChange={(e) =>
+                                            setNewStudent({
+                                                ...newStudent,
+                                                name: e.target.value
+                                            })
                                         }
-                                    >
-                                        Results
-                                    </button>
+                                        required
+                                    />
 
-                                    <button
-                                        onClick={() => {
-                                            setSelectedAssessmentId(asm.id);
-                                            setActiveTab("Create");
-                                        }}
-                                    >
-                                        Edit
-                                    </button>
-
-                                    <button
-                                        onClick={() =>
-                                            handleDeleteAssessment(asm.id)
+                                    <input
+                                        placeholder="Student ID"
+                                        style={styles.searchBox}
+                                        value={newStudent.studentId}
+                                        onChange={(e) =>
+                                            setNewStudent({
+                                                ...newStudent,
+                                                studentId: e.target.value
+                                            })
                                         }
+                                        required
+                                    />
+
+                                    <input
+                                        type="email"
+                                        placeholder="Email"
+                                        style={styles.searchBox}
+                                        value={newStudent.email}
+                                        onChange={(e) =>
+                                            setNewStudent({
+                                                ...newStudent,
+                                                email: e.target.value
+                                            })
+                                        }
+                                        required
+                                    />
+
+                                    <button
+                                        type="submit"
+                                        style={styles.primaryBtn}
                                     >
-                                        Delete
+                                        Save
                                     </button>
 
-                                </div>
-                            ))
-                        )}
+                                </form>
+                            )}
 
-                    </div>
-                )}
+                            <div style={styles.tableWrapper}>
 
-               
-                {activeTab === "Submissions" && (
+                                <table
+                                    style={{
+                                        width: '100%',
+                                        borderCollapse: 'collapse'
+                                    }}
+                                >
 
-                    <div>
+                                    <thead>
 
-                        <h2>Submissions</h2>
+                                        <tr style={styles.tableHeadRow}>
+                                            <th style={styles.thStyle}>
+                                                Student ID
+                                            </th>
 
-                        <input
-                            type="text"
-                            placeholder="Search Student ID"
-                            onChange={(e) =>
-                                setSearchTerm(e.target.value)
-                            }
-                        />
+                                            <th style={styles.thStyle}>
+                                                Name
+                                            </th>
 
-                        <select
-                            onChange={(e) =>
-                                setFilterStatus(e.target.value)
-                            }
-                        >
-                            <option value="ALL">All</option>
-                            <option value="ACCEPTED">Passed</option>
-                            <option value="FAILED">Failed</option>
-                        </select>
+                                            <th style={styles.thStyle}>
+                                                Email
+                                            </th>
+                                        </tr>
 
-                        <table>
+                                    </thead>
 
-                            <thead>
+                                    <tbody>
 
-                                <tr>
-                                    <th>Student ID</th>
-                                    <th>Name</th>
-                                    <th>Score</th>
-                                    <th>Status</th>
-                                </tr>
+                                        {filteredStudents.map((std, i) => (
 
-                            </thead>
+                                            <tr key={i} style={styles.tableRow}>
 
-                            <tbody>
+                                                <td style={styles.tdStyle}>
+                                                    {std.studentId}
+                                                </td>
 
-                                {filteredSubmissions.map((sub, i) => (
+                                                <td style={styles.tdStyle}>
+                                                    {std.name}
+                                                </td>
 
-                                    <tr key={i}>
+                                                <td style={styles.tdStyle}>
+                                                    {std.email}
+                                                </td>
 
-                                        <td>{sub.studentId}</td>
+                                            </tr>
+                                        ))}
 
-                                        <td>{sub.studentName}</td>
+                                    </tbody>
 
-                                        <td>
-                                            {sub.totalScore} /
-                                            {sub.totalPossible}
-                                        </td>
+                                </table>
 
-                                        <td>{sub.status}</td>
+                            </div>
 
-                                    </tr>
-                                ))}
+                        </div>
+                    )}
 
-                            </tbody>
-
-                        </table>
-
-                    </div>
-                )}
+                </div>
 
             </main>
 
@@ -610,35 +559,200 @@ const TeacherDashboard = () => {
     );
 };
 
+// ---------------- NAV ITEM ----------------
+
+const NavItem = ({
+    icon,
+    label,
+    active,
+    onClick
+}) => (
+
+    <div
+        style={active ? styles.activeNavItem : styles.navItem}
+        onClick={onClick}
+    >
+        <span style={{ marginRight: '12px' }}>
+            {icon}
+        </span>
+
+        {label}
+    </div>
+);
+
+
 
 const styles = {
 
     appLayout: {
         display: 'flex',
-        minHeight: '100vh',
-        background: '#f5f7fb'
+        height: '100vh',
+        background: '#f5f7fb',
+        fontFamily: 'Arial'
     },
 
     sidebar: {
-        width: '250px',
+        width: '240px',
         background: '#fff',
-        padding: '20px',
+        borderRight: '1px solid #e5e7eb',
         display: 'flex',
         flexDirection: 'column',
-        gap: '10px'
+        padding: '20px'
+    },
+
+    brandWrapper: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px',
+        marginBottom: '30px'
+    },
+
+    logoSquare: {
+        width: '32px',
+        height: '32px',
+        background: '#2563eb',
+        borderRadius: '6px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: '#fff',
+        fontWeight: 'bold'
+    },
+
+    brandTitle: {
+        fontSize: '18px',
+        margin: 0
+    },
+
+    navStyle: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '10px',
+        flexGrow: 1
+    },
+
+    navItem: {
+        padding: '10px',
+        borderRadius: '6px',
+        cursor: 'pointer'
+    },
+
+    activeNavItem: {
+        padding: '10px',
+        borderRadius: '6px',
+        background: '#dbeafe',
+        color: '#1d4ed8',
+        fontWeight: 'bold',
+        cursor: 'pointer'
+    },
+
+    logoutBtn: {
+        padding: '10px',
+        color: '#dc2626',
+        cursor: 'pointer'
     },
 
     mainViewport: {
         flex: 1,
+        overflowY: 'auto'
+    },
+
+    topHeader: {
+        padding: '20px',
+        background: '#fff',
+        borderBottom: '1px solid #e5e7eb',
+        display: 'flex',
+        justifyContent: 'space-between'
+    },
+
+    welcomeText: {
+        margin: 0
+    },
+
+    breadcrumb: {
+        color: '#6b7280',
+        fontSize: '13px'
+    },
+
+    topProfileHeader: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px'
+    },
+
+    miniAvatar: {
+        width: '35px',
+        height: '35px',
+        borderRadius: '50%',
+        background: '#2563eb',
+        color: '#fff',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+    },
+
+    miniEmail: {
+        fontSize: '13px'
+    },
+
+    content: {
         padding: '20px'
     },
 
-    manageCard: {
+    miniStatCard: {
         background: '#fff',
         padding: '20px',
+        borderRadius: '8px',
+        border: '1px solid #e5e7eb',
+        flex: 1
+    },
+
+    tableWrapper: {
+        background: '#fff',
+        borderRadius: '8px',
+        overflow: 'hidden',
+        border: '1px solid #e5e7eb'
+    },
+
+    tableHeadRow: {
+        background: '#f9fafb'
+    },
+
+    thStyle: {
+        padding: '12px',
+        textAlign: 'left'
+    },
+
+    tdStyle: {
+        padding: '12px'
+    },
+
+    tableRow: {
+        borderTop: '1px solid #e5e7eb'
+    },
+
+    primaryBtn: {
+        background: '#2563eb',
+        color: '#fff',
+        border: 'none',
+        padding: '10px 16px',
+        borderRadius: '6px',
+        cursor: 'pointer'
+    },
+
+    searchBox: {
+        padding: '10px',
+        border: '1px solid #d1d5db',
+        borderRadius: '6px'
+    },
+
+    manualAddForm: {
+        display: 'flex',
+        gap: '10px',
         marginBottom: '20px',
-        borderRadius: '8px'
+        flexWrap: 'wrap'
     }
+
 };
 
 export default TeacherDashboard;
