@@ -40,45 +40,34 @@ public class SecurityConfig {
 
             .authorizeHttpRequests(auth -> auth
 
-                // OPTIONS
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                // AUTH APIs
+                
                 .requestMatchers("/api/auth/**").permitAll()
 
-                // PUBLIC APIs
                 .requestMatchers("/api/problems/**").permitAll()
                 .requestMatchers("/api/assessment/**").permitAll()
                 .requestMatchers("/api/users/me").permitAll()
 
-                // PUBLIC ADMIN APIs
-                .requestMatchers("/api/admin/assessment/all").permitAll()
-                .requestMatchers("/api/admin/hierarchy/**").permitAll()
-                .requestMatchers("/api/admin/bulk-upload-students").permitAll()
-                .requestMatchers("/api/admin/bulk-upload-teacher").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/admin/students/all").permitAll()
-                .requestMatchers(HttpMethod.DELETE, "/api/admin/assessment/**").permitAll()
-                .requestMatchers("/api/admin/assessment/public/**").permitAll()
-
-                // AUTH REQUIRED
+                
                 .requestMatchers("/api/compiler/**").authenticated()
                 .requestMatchers("/api/submissions/**").authenticated()
                 .requestMatchers("/api/users/update").authenticated()
                 .requestMatchers("/api/assessment/run").authenticated()
                 .requestMatchers("/api/assessment/final-submit").authenticated()
 
-                // ADMIN
-                .requestMatchers("/api/admin/stats").hasAuthority("ADMIN")
-                .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
+               
+                .requestMatchers("/api/admin/**")
+                .hasAnyAuthority("ROLE_ADMIN")
 
-                // ADMIN + TEACHER
+                
                 .requestMatchers("/api/assessment/*/add-questions")
-                .hasAnyAuthority("ADMIN", "TEACHER")
+                .hasAnyAuthority("ROLE_ADMIN", "ROLE_TEACHER")
 
                 .requestMatchers(HttpMethod.POST, "/api/problems/add")
-                .hasAnyAuthority("ADMIN", "TEACHER")
+                .hasAnyAuthority("ROLE_ADMIN", "ROLE_TEACHER")
 
-                // OTHER
+                // fallback
                 .anyRequest().authenticated()
             );
 
