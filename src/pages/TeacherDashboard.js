@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -15,6 +16,7 @@ const TeacherDashboard = () => {
     const [searchTerm, setSearchTerm] = useState("");
     const [filterStatus, setFilterStatus] = useState("ALL"); 
 
+    
     const [showAddStudent, setShowAddStudent] = useState(false);
     const [newStudent, setNewStudent] = useState({ name: '', email: '', studentId: '' });
     
@@ -22,14 +24,17 @@ const TeacherDashboard = () => {
     const userEmail = localStorage.getItem('userEmail') || 'Not Available'; 
     const token = localStorage.getItem('token');
 
-    const API = "https://online-coding-assessment-platform-production.up.railway.app";
+ 
 
     const fetchAssessments = useCallback(async () => {
         setLoading(true);
         try {
-            const res = await axios.get(`${API}/api/admin/assessment/all`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
+           const res = await axios.get(
+  'https://online-coding-assessment-platform-production.up.railway.app/api/admin/assessment/all',
+  {
+    headers: { 'Authorization': `Bearer ${token}` }
+  }
+);
             setAssessments(res.data);
         } catch (err) {
             console.error("Error fetching assessments", err);
@@ -41,9 +46,12 @@ const TeacherDashboard = () => {
     const fetchStudents = useCallback(async () => {
         setLoading(true);
         try {
-            const res = await axios.get(`${API}/api/admin/students/all`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
+           const res = await axios.get(
+  'https://online-coding-assessment-platform-production.up.railway.app/api/admin/students/all',
+  {
+    headers: { 'Authorization': `Bearer ${token}` }
+  }
+);
             setStudents(res.data);
         } catch (err) {
             console.error("Error fetching students", err);
@@ -56,9 +64,12 @@ const TeacherDashboard = () => {
         if (!assessmentId) return; 
         setLoading(true);
         try {
-            const res = await axios.get(`${API}/api/assessment/teacher/${assessmentId}/results`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
+            const res = await axios.get(
+  `https://online-coding-assessment-platform-production.up.railway.app/api/assessment/teacher/${assessmentId}/results`,
+  {
+    headers: { 'Authorization': `Bearer ${token}` }
+  }
+);
             setSubmissions(res.data);
         } catch (err) {
             console.error("Submissions error:", err);
@@ -66,6 +77,8 @@ const TeacherDashboard = () => {
             setLoading(false);
         }
     }, [token]);
+
+    
 
     useEffect(() => {
         if (activeTab === "Manage" || activeTab === "Dashboard") {
@@ -79,12 +92,19 @@ const TeacherDashboard = () => {
         }
     }, [activeTab, selectedAssessmentId, fetchAssessments, fetchTeacherSubmissions, fetchStudents]);
 
+    
+
     const handleManualAddStudent = async (e) => {
         e.preventDefault();
         try {
-            await axios.post(`${API}/api/admin/students/add`, newStudent, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
+            // Check if your backend endpoint is correct (e.g., /api/admin/students/add)
+           await axios.post(
+  'https://online-coding-assessment-platform-production.up.railway.app/api/admin/students/add',
+  newStudent,
+  {
+    headers: { 'Authorization': `Bearer ${token}` }
+  }
+);
             alert("Student added successfully! ✨");
             setShowAddStudent(false);
             setNewStudent({ name: '', email: '', studentId: '' });
@@ -94,12 +114,21 @@ const TeacherDashboard = () => {
         }
     };
 
+    const handleViewResults = (id) => {
+        setSelectedAssessmentId(id);
+        setActiveTab("Submissions");
+        fetchTeacherSubmissions(id);
+    };
+
     const handleDeleteAssessment = async (id) => {
         if (window.confirm("Are you sure? This will delete the assessment.")) {
             try {
-                await axios.delete(`${API}/api/admin/assessment/${id}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
+              await axios.delete(
+  `https://online-coding-assessment-platform-production.up.railway.app/api/admin/assessment/${id}`,
+  {
+    headers: { 'Authorization': `Bearer ${token}` }
+  }
+);
                 setAssessments(prev => prev.filter(asm => asm.id !== id));
             } catch (err) {
                 alert("Delete failed.");
@@ -109,9 +138,13 @@ const TeacherDashboard = () => {
 
     const handleFinishAssessment = async () => {
         try {
-            await axios.put(`${API}/api/admin/assessment/${selectedAssessmentId}/complete`, {}, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
+            await axios.put(
+  `https://online-coding-assessment-platform-production.up.railway.app/api/admin/assessment/${selectedAssessmentId}/complete`,
+  {},
+  {
+    headers: { 'Authorization': `Bearer ${token}` }
+  }
+);
             alert("✅ Assessment Completed!");
             setSelectedAssessmentId(null);
             setActiveTab("Manage");
@@ -121,6 +154,15 @@ const TeacherDashboard = () => {
             setActiveTab("Manage");
         }
     };
+
+    const handleLogout = () => {
+        if (window.confirm("Logout?")) {
+            localStorage.clear();
+            navigate('/login', { replace: true });
+        }
+    };
+
+    // filter
 
     const filteredSubmissions = submissions.filter(sub => {
         const matchesSearch = sub.studentId?.toString().toLowerCase().includes(searchTerm.toLowerCase());
@@ -225,6 +267,7 @@ const TeacherDashboard = () => {
                         </div>
                     )}
 
+                    {/* Students List Tab with Manual Add */}
                     {activeTab === "Students" && (
                         <div style={{ animation: 'fadeIn 0.4s ease' }}>
                              <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px'}}>
@@ -301,6 +344,7 @@ const TeacherDashboard = () => {
                         </div>
                     )}
 
+                    {/* Submissions Part */}
                     {activeTab === "Submissions" && (
                         <div style={{ animation: 'fadeIn 0.4s ease' }}>
                             <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px'}}>
@@ -358,7 +402,7 @@ const TeacherDashboard = () => {
                         </div>
                     )}
 
-                    
+                    {/* Create Assessment Part */}
                     {activeTab === "Create" && (
                         <div style={styles.formContainer}>
                             <div style={styles.stepperContainer}>
@@ -398,6 +442,7 @@ const TeacherDashboard = () => {
                         </div>
                     )}
 
+                    {/* Manage Grid */}
                     {activeTab === "Manage" && (
                         <div style={{ animation: 'fadeIn 0.5s ease' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
