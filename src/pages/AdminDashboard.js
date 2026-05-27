@@ -1,1221 +1,824 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import StudentForm from './StudentForm';
+import AddProblem from './AddProblem';
+import ExcelImport from './ExcelImport';
+import TeacherForm from './TeacherForm';
+import BranchForm from './BranchForm';
+import BatchForm from './BatchForm';
+import ManageRoles from './ManageRoles';
 
-import StudentForm from "./StudentForm";
-import TeacherForm from "./TeacherForm";
-import BranchForm from "./BranchForm";
-import BatchForm from "./BatchForm";
-import ExcelImport from "./ExcelImport";
-import ManageRoles from "./ManageRoles";
+// BASE URL CHANGED ONLY HERE
 const API_BASE =
-  process.env.REACT_APP_API_URL ||
   "https://online-coding-assessment-platform-production.up.railway.app";
 
+//admindashboard component - Integrated excel import and live data list
+ 
 const AdminDashboard = () => {
-  const navigate = useNavigate();
+    const navigate = useNavigate();
+    const [activeTab, setActiveTab] = useState("Dashboard");
+    const [loading, setLoading] = useState(true);
+    const [showForm, setShowForm] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
+    const [viewItem, setViewItem] = useState(null);
+    const [searchTerm, setSearchTerm] = useState("");
 
-  const [activeTab, setActiveTab] = useState("Dashboard");
-  const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const [viewItem, setViewItem] = useState(null);
-  const [searchTerm, setSearchTerm] = useState("");
+    
+    const [stats, setStats] = useState({
+        totalAssessments: 0, totalPractice: 0, totalSubmissions: 0, activeStudents: 0
+    });
+    const [moduleData, setModuleData] = useState([]);
+    const [institutions, setInstitutions] = useState([]);
+    const [branches, setBranches] = useState([]);
+    const [batches, setBatches] = useState([]);
+    const [recentSubmissions, setRecentSubmissions] = useState([]);
 
-  const [stats, setStats] = useState({
-    totalAssessments: 0,
-    totalPractice: 0,
-    totalSubmissions: 0,
-    activeStudents: 0,
-  });
+    const adminData = useMemo(() => {
+        try {
+            return JSON.parse(localStorage.getItem('user') || '{}');
+        } catch (e) {
+            return { name: 'Admin' };
+        }
+    }, []);
 
-  const [moduleData, setModuleData] = useState([]);
-  const [institutions, setInstitutions] = useState([]);
-  const [branches, setBranches] = useState([]);
-  const [batches, setBatches] = useState([]);
-
-  const [recentSubmissions, setRecentSubmissions] = useState([]);
-
-  const adminData = useMemo(() => {
-    try {
-      return JSON.parse(localStorage.getItem("user") || "{}");
-    } catch {
-      return { name: "Admin" };
-    }
-  }, []);
-
-  const [formData, setFormData] = useState({
-    id: "",
-    name: "",
-    code: "",
-    headName: "",
-    primaryEmail: "",
-    primaryContact: "",
-    secondaryEmail: "",
-    address: "",
-    city: "",
-    state: "",
-    instituteType: "College",
-    accessPlan: "Basic",
-    password: "",
-    version: null,
-  });
-
-  const token = localStorage.getItem("token");
-  const role = localStorage.getItem("role")?.toUpperCase();
-
-  const headers = useMemo(
-    () => ({
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    }),
-    [token]
-  );
-
-  const allowCreateTabs = [
-    "Institutions",
-    "Branches",
-    "Batch Years",
-    "Teachers",
-    "Students",
-  ];
-
-  const handleLogout = useCallback(() => {
-    localStorage.clear();
-    navigate("/login", { replace: true });
-  }, [navigate]);
-
-  const fetchData = async (endpoint) => {
-    const res = await fetch(`${API_BASE}${endpoint}`, {
-      headers,
+    const [formData, setFormData] = useState({
+        id: '', name: '', code: '', headName: '', primaryEmail: '',
+        primaryContact: '', secondaryEmail: '', address: '',
+        city: '', state: '', instituteType: 'College',
+        accessPlan: 'Basic', password: '', version: null
     });
 
-    if (!res.ok) throw new Error("Fetch failed");
+    const token = localStorage.getItem('token');
+    const role = localStorage.getItem('role')?.toUpperCase();
 
-    return res.json();
-  };
+    const handleLogout = useCallback(() => {
+        localStorage.clear();
+        navigate('/login', { replace: true });
+    }, [navigate]);
 
-  const fetchCoreData = useCallback(async () => {
-    if (!token || role !== "ADMIN") {
-      handleLogout();
-      return;
-    }
+    const fetchCoreData = useCallback(async () => {
+        if (!token || role !== 'ADMIN') return handleLogout();
 
-    setLoading(true);
+        const headers = {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+        };
+        
+        setLoading(true);
 
-    try {
-      if (activeTab === "Dashboard") {
-        const [statsData, submissionsData] = await Promise.all([
-          fetchData("/api/admin/stats"),
-          fetchData("/api/submissions/all"),
-        ]);
+        try {
+            if (activeTab === "Dashboard") {
+                const [sRes, rRes] = await Promise.all([
+                    fetch(`${API_BASE}/api/admin/stats`, { headers }),
+                    fetch(`${API_BASE}/api/submissions/all`, { headers })
+                ]);
 
-        setStats(statsData);
+                if (sRes.ok) setStats(await sRes.json());
 
-        setRecentSubmissions(
-          Array.isArray(submissionsData)
-            ? [...submissionsData].reverse().slice(0, 8)
-            : []
-        );
-      }
+                if (rRes.ok) {
+                    const data = await rRes.json();
+                    setRecentSubmissions(Array.isArray(data) ? [...data].reverse().slice(0, 8) : []);
+                }
+            }
 
-      const endpointMap = {
-        Institutions: "/api/admin/hierarchy/institutions",
-        Branches: "/api/admin/hierarchy/branches/all",
-        "Batch Years": "/api/admin/hierarchy/batches/all",
-        Students: "/api/admin/students/all",
-        "Student Import": "/api/admin/students/all",
-        Teachers: "/api/admin/teachers/all",
-        "Teacher Import": "/api/admin/teachers/all",
-      };
+            const endpointMap = {
+                "Institutions": "hierarchy/institutions",
+                "Branches": "hierarchy/branches/all",
+                "Batch Years": "hierarchy/batches/all",
+                "Students": "students/all",
+                "Student Import": "students/all",
+                "Teachers": "teachers/all",
+                "Teacher Import": "teachers/all",
+                "Assessments": "assessments/all",
+            };
 
-      if (endpointMap[activeTab]) {
-        const data = await fetchData(endpointMap[activeTab]);
-        setModuleData(Array.isArray(data) ? data : []);
-      }
+            if (endpointMap[activeTab]) {
+                const res = await fetch(`${API_BASE}/api/admin/${endpointMap[activeTab]}`, { headers });
 
-      const [inst, br, bt] = await Promise.all([
-        fetchData("/api/admin/hierarchy/institutions"),
-        fetchData("/api/admin/hierarchy/branches/all"),
-        fetchData("/api/admin/hierarchy/batches/all"),
-      ]);
+                if (res.ok) {
+                    const data = await res.json();
+                    setModuleData(Array.isArray(data) ? data : []);
+                }
+            }
 
-      setInstitutions(inst);
-      setBranches(br);
-      setBatches(bt);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  }, [activeTab, token, role, handleLogout]);
+            const [instRes, brRes, btRes] = await Promise.all([
+                fetch(`${API_BASE}/api/admin/hierarchy/institutions`, { headers }),
+                fetch(`${API_BASE}/api/admin/hierarchy/branches/all`, { headers }),
+                fetch(`${API_BASE}/api/admin/hierarchy/batches/all`, { headers })
+            ]);
 
-  useEffect(() => {
-    fetchCoreData();
-    setSearchTerm("");
-    setShowForm(false);
-    setIsEditing(false);
-  }, [activeTab, fetchCoreData]);
+            if (instRes.ok) setInstitutions(await instRes.json());
+            if (brRes.ok) setBranches(await brRes.json());
+            if (btRes.ok) setBatches(await btRes.json());
 
-  const filteredData = useMemo(() => {
-    if (!searchTerm.trim()) return moduleData;
+        } catch (error) {
+            console.error("Fetch Error:", error);
+        } finally {
+            setLoading(false);
+        }
+    }, [activeTab, token, role, handleLogout]);
 
-    const lower = searchTerm.toLowerCase();
-
-    return moduleData.filter((item) =>
-      JSON.stringify(item).toLowerCase().includes(lower)
-    );
-  }, [moduleData, searchTerm]);
-
-  const resetForm = () => {
-    setFormData({
-      id: "",
-      name: "",
-      code: "",
-      headName: "",
-      primaryEmail: "",
-      primaryContact: "",
-      secondaryEmail: "",
-      address: "",
-      city: "",
-      state: "",
-      instituteType: "College",
-      accessPlan: "Basic",
-      password: "",
-      version: null,
-    });
-
-    setShowForm(false);
-    setIsEditing(false);
-  };
-
-  const handleSaveInstitution = async (e) => {
-    e.preventDefault();
-
-    const url = isEditing
-      ? `${API_BASE}/api/admin/hierarchy/institutions/update/${formData.id}`
-      : `${API_BASE}/api/admin/hierarchy/institutions/add`;
-
-    const method = isEditing ? "PUT" : "POST";
-
-    try {
-      const res = await fetch(url, {
-        method,
-        headers,
-        body: JSON.stringify(formData),
-      });
-
-      if (res.ok) {
-        alert(
-          isEditing
-            ? "Updated Successfully"
-            : "Institution Created"
-        );
-
-        resetForm();
+    useEffect(() => {
         fetchCoreData();
-      } else {
-        const err = await res.json();
-        alert(err.message || "Failed");
-      }
-    } catch {
-      alert("Server Error");
-    }
-  };
+        setShowForm(false);
+        setIsEditing(false);
+        setSearchTerm("");
+    }, [activeTab, fetchCoreData]);
 
-  const handleDelete = async (item, type) => {
-    if (!window.confirm("Delete this item?")) return;
+    const filteredData = useMemo(() => {
+        if (!searchTerm) return moduleData;
+        const lowerSearch = searchTerm.toLowerCase();
+        return moduleData.filter(item => {
+            const name = item.name || item.userName || item.branchName || item.batchName || "";
+            const roll = item.rollNo || item.code || "";
+            return name.toLowerCase().includes(lowerSearch) || roll.toLowerCase().includes(lowerSearch);
+        });
+    }, [moduleData, searchTerm]);
 
-    const endpointMap = {
-      Institutions: `/api/admin/hierarchy/institutions/delete/${item.id}`,
-      Teachers: `/api/admin/teachers/delete/${item.id}`,
-      "Teacher Import": `/api/admin/teachers/delete/${item.id}`,
-      Branches: `/api/admin/hierarchy/branches/delete/${item.id}`,
-      "Batch Years": `/api/admin/hierarchy/batches/delete/${item.id}`,
-      Students: `/api/admin/students/delete/${item.id}`,
-      "Student Import": `/api/admin/students/delete/${item.id}`,
+    const resetForm = () => {
+        setFormData({
+            id: '', name: '', code: '', headName: '', primaryEmail: '',
+            primaryContact: '', secondaryEmail: '', address: '',
+            city: '', state: '', instituteType: 'College',
+            accessPlan: 'Basic', password: '', version: null
+        });
+        setShowForm(false);
+        setIsEditing(false);
     };
 
-    try {
-      const res = await fetch(`${API_BASE}${endpointMap[type]}`, {
-        method: "DELETE",
-        headers,
-      });
+    const handleSaveInstitution = async (e) => {
+        e.preventDefault();
 
-      if (res.ok) {
-        alert("Deleted Successfully");
-        fetchCoreData();
-      } else {
-        alert("Delete Failed");
-      }
-    } catch {
-      alert("Error");
-    }
-  };
+        const method = isEditing ? 'PUT' : 'POST';
 
-  const menuGroups = [
-    {
-      name: "FOUNDATION",
-      items: ["Institutions", "Batch Years", "Branches"],
-    },
-    {
-      name: "USER MANAGEMENT",
-      items: ["Teachers", "Students", "Manage Roles"],
-    },
-    {
-      name: "REPOSITORY",
-      items: ["Student Import", "Teacher Import"],
-    },
-  ];
+        const url = isEditing
+            ? `${API_BASE}/api/admin/hierarchy/institutions/update/${formData.id}`
+            : `${API_BASE}/api/admin/hierarchy/institutions/add`;
 
-  return (
-    <div style={appLayout}>
-      <aside style={sidebarStyle}>
-        <div style={brandWrapper}>
-          <h2 style={brandTitle}>
-            FAMEHUB <span style={badgeStyle}>ADMIN</span>
-          </h2>
-        </div>
+        try {
+            const res = await fetch(url, {
+                method,
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            });
 
-        <nav style={navStyle}>
-          <NavItem
-            label="Dashboard"
-            icon="📊"
-            active={activeTab === "Dashboard"}
-            onClick={() => setActiveTab("Dashboard")}
-          />
+            if (res.ok) {
+                alert(isEditing ? "✅ Updated Successfully!" : "✅ Registered Successfully!");
+                resetForm();
+                fetchCoreData();
+            } else {
+                const err = await res.json();
+                alert("❌ Error: " + (err.message || "Failed to save"));
+            }
+        } catch (error) {
+            alert("Connection Error");
+        }
+    };
 
-          {menuGroups.map((group) => (
-            <div key={group.name} style={menuGroupWrapper}>
-              <p style={groupLabel}>{group.name}</p>
+    const handleDelete = async (item, type) => {
+        if (!window.confirm(`Are you sure you want to delete this ${type.slice(0, -1)}?`)) return;
 
-              {group.items.map((item) => (
-                <NavItem
-                  key={item}
-                  label={item}
-                  active={activeTab === item}
-                  onClick={() => setActiveTab(item)}
-                />
-              ))}
-            </div>
-          ))}
-        </nav>
-      </aside>
+        const endpointMap = {
+            "Institutions": `/api/admin/hierarchy/institutions/delete/${item.id}`,
+            "Teachers": `/api/admin/teachers/delete/${item.id}`,
+            "Teacher Import": `/api/admin/teachers/delete/${item.id}`,
+            "Branches": `/api/admin/hierarchy/branches/delete/${item.id}`,
+            "Batch Years": `/api/admin/hierarchy/batches/delete/${item.id}`,
+            "Students": `/api/admin/students/delete/${item.id}`,
+            "Student Import": `/api/admin/students/delete/${item.id}` 
+        };
 
-      <main style={mainViewport}>
-        <header style={topHeader}>
-          <div>
-            <h1 style={viewTitle}>{activeTab}</h1>
-            <p style={breadcrumb}>Admin / {activeTab}</p>
-          </div>
+        try {
+            const res = await fetch(`${API_BASE}${endpointMap[type]}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
 
-          <div style={headerRight}>
-            {activeTab !== "Dashboard" && (
-              <input
-                style={{ ...iBox, width: "250px" }}
-                placeholder={`Search ${activeTab}`}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            )}
+            if (res.ok) {
+                alert("Deleted successfully!");
+                fetchCoreData();
+            } else {
+                alert("Failed to delete. It might be linked to other records.");
+            }
+        } catch (error) {
+            alert("Error deleting record");
+        }
+    };
 
-            <div style={profilePill}>
-              <div style={smallAvatar}>
-                {(adminData.name || "A")[0]}
-              </div>
+    const menuGroups = [
+        { name: "FOUNDATION", items: ["Institutions", "Batch Years", "Branches"] },
+        { name: "USER MANAGEMENT", items: ["Teachers", "Students", "Manage Roles"] },
+        { name: "REPOSITORY", items: ["Student Import", "Teacher Import"] }
+    ];
 
-              <div>
-                <div style={pillName}>{adminData.name}</div>
-                <div style={pillRole}>Administrator</div>
-              </div>
-            </div>
+    const sharedStyles = { cardStyle, cardTitle, formGrid, fGroup, lStyle, iBox, primaryBtn, secondaryBtn };
 
-            <button onClick={handleLogout} style={dangerBtn}>
-              Logout
-            </button>
-          </div>
-        </header>
+      return (
+        <div style={appLayout}>
+            <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+            
+            <aside style={sidebarStyle}>
+                <div style={brandWrapper}><h2 style={brandTitle}>FAMEHUB <span style={badgeStyle}>ADMIN</span></h2></div>
+                <nav style={navStyle}>
+                    <NavItem label="Dashboard" icon="📊" active={activeTab === "Dashboard"} onClick={() => setActiveTab("Dashboard")} />
+                    {menuGroups.map(group => (
+                        <div key={group.name} style={menuGroupWrapper}>
+                            <p style={groupLabel}>{group.name}</p>
+                            {group.items.map(item => (
+                                <NavItem key={item} label={item} active={activeTab === item} onClick={() => setActiveTab(item)} />
+                            ))}
+                        </div>
+                    ))}
+                </nav>
+            </aside>
 
-        <section style={contentSection}>
-          {loading ? (
-            <div style={loadingBox}>
-              <div style={spinnerStyle}></div>
-            </div>
-          ) : (
-            <>
-              {viewItem && (
-                <Modal
-                  item={viewItem}
-                  close={() => setViewItem(null)}
-                />
-              )}
-
-              {activeTab === "Dashboard" ? (
-                <>
-                  <div style={statsGrid}>
-                    <StatBox
-                      title="Assessments"
-                      val={stats.totalAssessments}
-                      color="#3b82f6"
-                    />
-                    <StatBox
-                      title="Practice"
-                      val={stats.totalPractice}
-                      color="#10b981"
-                    />
-                    <StatBox
-                      title="Submissions"
-                      val={stats.totalSubmissions}
-                      color="#f59e0b"
-                    />
-                    <StatBox
-                      title="Students"
-                      val={stats.activeStudents}
-                      color="#8b5cf6"
-                    />
-                  </div>
-
-                  <div style={cardStyle}>
-                    <h3 style={cardTitle}>Recent Activity</h3>
-
-                    <DataTable
-                      tab="Dashboard"
-                      headers={[
-                        "#",
-                        "Student",
-                        "Problem",
-                        "Status",
-                        "Score",
-                        "Date",
-                      ]}
-                      data={recentSubmissions}
-                    />
-                  </div>
-                </>
-              ) : (
-                <>
-                  {showForm && (
-                    <div style={cardStyle}>
-                      <h3 style={cardTitle}>
-                        {isEditing ? "Update" : "Create"}{" "}
-                        {activeTab}
-                      </h3>
-
-                      <br />
-
-                      {activeTab === "Institutions" && (
-                        <form
-                          onSubmit={handleSaveInstitution}
-                          style={formGrid}
-                        >
-                          <div style={fGroup}>
-                            <label style={lStyle}>Name</label>
-
-                            <input
-                              style={iBox}
-                              value={formData.name}
-                              onChange={(e) =>
-                                setFormData({
-                                  ...formData,
-                                  name: e.target.value,
-                                })
-                              }
-                            />
-                          </div>
-
-                          <div style={fGroup}>
-                            <label style={lStyle}>Code</label>
-
-                            <input
-                              style={iBox}
-                              value={formData.code}
-                              onChange={(e) =>
-                                setFormData({
-                                  ...formData,
-                                  code: e.target.value,
-                                })
-                              }
-                            />
-                          </div>
-
-                          <div style={fGroup}>
-                            <label style={lStyle}>
-                              Head Name
-                            </label>
-
-                            <input
-                              style={iBox}
-                              value={formData.headName}
-                              onChange={(e) =>
-                                setFormData({
-                                  ...formData,
-                                  headName: e.target.value,
-                                })
-                              }
-                            />
-                          </div>
-
-                          <div style={fGroup}>
-                            <label style={lStyle}>Email</label>
-
-                            <input
-                              style={iBox}
-                              type="email"
-                              value={formData.primaryEmail}
-                              onChange={(e) =>
-                                setFormData({
-                                  ...formData,
-                                  primaryEmail:
-                                    e.target.value,
-                                })
-                              }
-                            />
-                          </div>
-
-                          <div
-                            style={{
-                              display: "flex",
-                              gap: 10,
-                              marginTop: 15,
-                            }}
-                          >
-                            <button
-                              type="submit"
-                              style={primaryBtn}
-                            >
-                              Save
-                            </button>
-
-                            <button
-                              type="button"
-                              style={secondaryBtn}
-                              onClick={resetForm}
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        </form>
-                      )}
-
-                      {activeTab === "Branches" && (
-                        <BranchForm
-                          institutions={institutions}
-                          token={token}
-                          onSuccess={fetchCoreData}
-                          onCancel={resetForm}
-                        />
-                      )}
-
-                      {activeTab === "Batch Years" && (
-                        <BatchForm
-                          branches={branches}
-                          token={token}
-                          onSuccess={fetchCoreData}
-                          onCancel={resetForm}
-                        />
-                      )}
-
-                      {activeTab === "Teachers" && (
-                        <TeacherForm
-                          institutions={institutions}
-                          token={token}
-                          onSuccess={fetchCoreData}
-                          onCancel={resetForm}
-                        />
-                      )}
-
-                      {activeTab === "Students" && (
-                        <StudentForm
-                          batches={batches}
-                          token={token}
-                          onSuccess={fetchCoreData}
-                          onCancel={resetForm}
-                        />
-                      )}
+            <main style={mainViewport}>
+                <header style={topHeader}>
+                    <div>
+                        <h1 style={viewTitle}>{activeTab}</h1>
+                        <p style={breadcrumb}>Admin / {activeTab}</p>
                     </div>
-                  )}
+                    
+                    <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
+                        {activeTab !== "Dashboard" && !["Add Problem"].includes(activeTab) && (
+                            <input 
+                                style={{ ...iBox, width: '250px' }} 
+                                placeholder={`Search ${activeTab}...`} 
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
+                        )}
 
-                  {activeTab === "Manage Roles" && (
-                    <div style={cardStyle}>
-                      <ManageRoles
-                        token={token}
-                        onSuccess={fetchCoreData}
-                      />
+                        <div style={profilePill}>
+                            <div style={smallAvatar}>{(adminData.name || 'A').charAt(0).toUpperCase()}</div>
+                            <div style={{ display: 'flex', flexDirection: 'column', lineHeight: '1.2' }}>
+                                <span style={pillName}>{adminData.name || "Admin"}</span>
+                                <span style={pillRole}>Main Administrator</span>
+                            </div>
+                        </div>
+                        <button onClick={handleLogout} style={dangerBtn}>Logout</button>
                     </div>
-                  )}
+                </header>
 
-                  {![
-                    "Manage Roles",
-                    "Student Import",
-                    "Teacher Import",
-                  ].includes(activeTab) && (
-                    <div style={cardStyle}>
-                      <div style={cardHeader}>
-                        <h3 style={cardTitle}>
-                          {activeTab} List
-                        </h3>
+                <section style={contentSection}>
+                    {loading ? (
+                        <div style={{ textAlign: 'center', padding: '100px' }}>
+                            <div style={spinnerStyle}></div>
+                            <h3 style={{color: '#3b82f6', marginTop: '20px'}}>Refreshing Data...</h3>
+                        </div>
+                    ) : (
+                        <>
+                            {viewItem && (
+                                <div style={modalOverlay} onClick={() => setViewItem(null)}>
+                                    <div style={modalContent} onClick={e => e.stopPropagation()}>
+                                        <h3 style={cardTitle}>Information Details</h3>
+                                        <hr style={{ borderColor: '#1f2937', margin: '15px 0' }} />
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', overflowY: 'auto', maxHeight: '60vh' }}>
+                                            {Object.entries(viewItem).map(([k, v]) => (
+                                                <div key={k}>
+                                                    <label style={lStyle}>{k.toUpperCase()}</label>
+                                                    <p style={{ color: '#fff', fontSize: '13px', marginTop: '4px' }}>
+                                                        {typeof v === 'object' ? (v?.name || v?.batchName || '---') : String(v)}
+                                                    </p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <button onClick={() => setViewItem(null)} style={{ ...secondaryBtn, marginTop: '20px', width: '100%' }}>Close</button>
+                                    </div>
+                                </div>
+                            )}
 
-                        {!showForm &&
-                          allowCreateTabs.includes(
-                            activeTab
-                          ) && (
-                            <button
-                              style={primaryBtn}
-                              onClick={() =>
-                                setShowForm(true)
-                              }
-                            >
-                              + New
-                            </button>
-                          )}
-                      </div>
+                            {activeTab === "Dashboard" ? (
+                                <>
+                                    <div style={statsGrid}>
+                                        <StatBox title="Assessments" val={stats.totalAssessments} color="#3b82f6" icon="📝" />
+                                        <StatBox title="Practice" val={stats.totalPractice} color="#10b981" icon="⚡" />
+                                        <StatBox title="Submissions" val={stats.totalSubmissions} color="#f59e0b" icon="📡" />
+                                        <StatBox title="Students" val={stats.activeStudents} color="#8b5cf6" icon="🎓" />
+                                    </div>
+                                    <div style={cardStyle}>
+                                        <h3 style={cardTitle}>Recent Activity</h3>
+                                        <DataTable headers={['#', 'Student', 'Problem', 'Status', 'Score', 'Date']} data={recentSubmissions} tab="Dashboard" />
+                                    </div>
+                                </>
+                            ) : (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                                    
+                                    {/* form selection */}
+                                    {showForm && (
+                                        <div style={cardStyle}>
+                                            <h3 style={cardTitle}>{isEditing ? "Update" : "Create New"} {activeTab}</h3>
+                                            <br/>
+                                            {activeTab === "Institutions" && (
+                                                <form onSubmit={handleSaveInstitution} style={formGrid}>
+                                                    <div style={fGroup}><label style={lStyle}>NAME</label><input style={iBox} required value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} /></div>
+                                                    <div style={fGroup}><label style={lStyle}>CODE</label><input style={iBox} required value={formData.code} onChange={e => setFormData({ ...formData, code: e.target.value })} /></div>
+                                                    <div style={fGroup}><label style={lStyle}>HEAD NAME</label><input style={iBox} required value={formData.headName} onChange={e => setFormData({ ...formData, headName: e.target.value })} /></div>
+                                                    <div style={fGroup}><label style={lStyle}>EMAIL</label><input style={iBox} type="email" required value={formData.primaryEmail} onChange={e => setFormData({ ...formData, primaryEmail: e.target.value })} /></div>
+                                                    <div style={{ display: 'flex', gap: '10px', gridColumn: 'span 2', marginTop: '10px' }}>
+                                                        <button type="submit" style={primaryBtn}>{isEditing ? "Update" : "Save"}</button>
+                                                        <button type="button" onClick={resetForm} style={secondaryBtn}>Cancel</button>
+                                                    </div>
+                                                </form>
+                                            )}
+                                            {activeTab === "Branches" && <BranchForm institutions={institutions} token={token} onSuccess={() => { fetchCoreData(); setShowForm(false); }} onCancel={() => setShowForm(false)} styles={sharedStyles} />}
+                                            {activeTab === "Batch Years" && <BatchForm branches={branches} token={token} onSuccess={() => { fetchCoreData(); setShowForm(false); }} onCancel={() => setShowForm(false)} styles={sharedStyles} />}
+                                            {activeTab === "Teachers" && <TeacherForm institutions={institutions} token={token} onSuccess={() => { fetchCoreData(); setShowForm(false); }} onCancel={() => setShowForm(false)} styles={sharedStyles} />}
+                                            {activeTab === "Students" && <StudentForm batches={batches} token={token} onSuccess={() => { fetchCoreData(); setShowForm(false); }} onCancel={() => setShowForm(false)} styles={sharedStyles} />}
+                                        </div>
+                                    )}
+                                    {/*mange role selection*/}
+{activeTab === "Manage Roles" && (
+    <div style={cardStyle}>
+        <ManageRoles token={token}
+        onSuccess={() => {
+        setShowForm(false);
+        fetchCoreData(); // Itha call panna thaan table la puthiya data kaatum
+    }} />
 
-                      <DataTable
-                        tab={activeTab}
-                        data={filteredData}
-                        onDelete={handleDelete}
-                        onView={setViewItem}
-                        onEdit={(item) => {
-                          setFormData({ ...item });
-                          setIsEditing(true);
-                          setShowForm(true);
-
-                          window.scrollTo({
-                            top: 0,
-                            behavior: "smooth",
-                          });
-                        }}
-                        headers={
-                          activeTab === "Institutions"
-                            ? [
-                                "#",
-                                "Name",
-                                "Email",
-                                "Head",
-                                "Code",
-                                "Actions",
-                              ]
-                            : activeTab === "Students"
-                            ? [
-                                "#",
-                                "Name",
-                                "Roll No",
-                                "Batch",
-                                "Branch",
-                                "Actions",
-                              ]
-                            : activeTab === "Teachers"
-                            ? [
-                                "#",
-                                "Name",
-                                "Staff ID",
-                                "Institution",
-                                "Actions",
-                              ]
-                            : [
-                                "#",
-                                "Name",
-                                "Detail",
-                                "Status",
-                                "Actions",
-                              ]
-                        }
-                      />
-                    </div>
-                  )}
-
-                  {activeTab === "Student Import" && (
-                    <>
-                      <ExcelImport
-                        token={token}
-                        importMode="STUDENT"
-                        onSuccess={fetchCoreData}
-                      />
-
-                      <div style={cardStyle}>
-                        <h3 style={cardTitle}>
-                          Current Students
-                        </h3>
-
-                        <DataTable
-                          tab="Students"
-                          headers={[
-                            "#",
-                            "Name",
-                            "Roll No",
-                            "Batch",
-                            "Branch",
-                            "Actions",
-                          ]}
-                          data={filteredData}
-                          onDelete={handleDelete}
-                          onView={setViewItem}
-                          onEdit={(item) => {
-                            setFormData(item);
-                            setShowForm(true);
-                            setIsEditing(true);
-                          }}
-                        />
-                      </div>
-                    </>
-                  )}
-
-                  {activeTab === "Teacher Import" && (
-                    <>
-                      <ExcelImport
-                        token={token}
-                        importMode="TEACHER"
-                        onSuccess={fetchCoreData}
-                      />
-
-                      <div style={cardStyle}>
-                        <h3 style={cardTitle}>
-                          Current Teachers
-                        </h3>
-
-                        <DataTable
-                          tab="Teachers"
-                          headers={[
-                            "#",
-                            "Name",
-                            "Staff ID",
-                            "Institution",
-                            "Actions",
-                          ]}
-                          data={filteredData}
-                          onDelete={handleDelete}
-                          onView={setViewItem}
-                          onEdit={(item) => {
-                            setFormData(item);
-                            setShowForm(true);
-                            setIsEditing(true);
-                          }}
-                        />
-                      </div>
-                    </>
-                  )}
-                </>
-              )}
-            </>
-          )}
-        </section>
-      </main>
     </div>
-  );
+)}
+
+                                    {/* main data list section */}
+                                    {!["Student Import", "Teacher Import","Manage Roles", "Add Problem"].includes(activeTab) && (
+                                        <div style={cardStyle}>
+                                            <div style={cardHeader}>
+                                                <h3 style={cardTitle}>{activeTab} List</h3>
+                                                {!showForm && (
+                                                    <button onClick={() => { resetForm(); setShowForm(true); }} style={primaryBtn}>+ New {activeTab.slice(0, -1)}</button>
+                                                )}
+                                            </div>
+                                            <DataTable
+                                                headers={
+                                                    activeTab === "Institutions" ? ['#', 'Name', 'Email', 'Head', 'Code', 'Actions'] :
+                                                    activeTab === "Students" ? ['#', 'Name', 'Roll No', 'Batch', 'Actions'] :
+                                                    activeTab === "Teachers" ? ['#', 'Name', 'Staff ID', 'Institution', 'Actions'] :
+                                                    ['#', 'Name', 'Detail', 'Status', 'Actions']
+                                                }
+                                                data={filteredData}
+                                                tab={activeTab}
+                                                onDelete={handleDelete}
+                                                onView={setViewItem}
+                                                onEdit={(item) => { setFormData(item); setIsEditing(true); setShowForm(true); window.scrollTo(0,0); }}
+                                            />
+                                        </div>
+                                    )}
+
+                                    {/*student import and live list */}
+                                    {activeTab === "Student Import" && (
+                                        <>
+                                            <ExcelImport 
+                                                token={token} 
+                                                activeTab={activeTab} 
+                                                importMode="STUDENT" 
+                                                styles={sharedStyles} 
+                                                onSuccess={fetchCoreData} 
+                                            />
+                                            <div style={cardStyle}>
+                                                <h3 style={cardTitle}>Current Students List</h3>
+                                                <DataTable 
+                                                    headers={['#', 'Name', 'Roll No', 'Batch', 'Branch', 'Actions']}
+                                                    data={filteredData}
+                                                    tab="Students"
+                                                    onDelete={handleDelete}
+                                                    onView={setViewItem}
+                                                    onEdit={(item) => { setFormData(item); setIsEditing(true); setShowForm(true); }}
+                                                />
+                                            </div>
+                                        </>
+                                    )}
+
+                                    {/* tEACHER IMPORT */}
+                                    {activeTab === "Teacher Import" && (
+                                        <>
+                                            <ExcelImport 
+                                                token={token} 
+                                                activeTab={activeTab} 
+                                                importMode="TEACHER" 
+                                                styles={sharedStyles} 
+                                                onSuccess={fetchCoreData} 
+                                            />
+                                            <div style={cardStyle}>
+                                                <h3 style={cardTitle}>Current Teachers List</h3>
+                                                <DataTable 
+                                                    headers={['#', 'Name', 'Staff ID', 'Institution', 'Actions']}
+                                                    data={filteredData}
+                                                    tab="Teachers"
+                                                    onDelete={handleDelete}
+                                                    onView={setViewItem}
+                                                    onEdit={(item) => { setFormData(item); setIsEditing(true); setShowForm(true); }}
+                                                />
+                                            </div>
+                                        </>
+                                    )}
+
+                                    {/* {activeTab === "Add Problem" && <AddProblem token={token} styles={sharedStyles} />} */}
+                                </div>
+                            )}
+                        </>
+                    )}
+                </section>
+            </main>
+        </div>
+    );
 };
 
-const DataTable = ({
-  headers,
-  data,
-  tab,
-  onDelete,
-  onView,
-  onEdit,
-}) => {
-  return (
-    <div style={{ overflowX: "auto" }}>
-      <table style={tableStyle}>
-        <thead>
-          <tr style={tableHeaderRow}>
-            {headers.map((h) => (
-              <th key={h} style={thStyle}>
-                {h}
-              </th>
-            ))}
-          </tr>
-        </thead>
+// sub Components 
 
-        <tbody>
-          {data?.length > 0 ? (
-            data.map((item, i) => (
-              <tr key={item.id || i} style={tableRow}>
-                <td style={tdStyle}>{i + 1}</td>
-
-                {tab === "Institutions" ? (
-                  <>
-                    <td style={tdBold}>{item.name}</td>
-                    <td style={tdStyle}>
-                      {item.primaryEmail}
-                    </td>
-                    <td style={tdStyle}>
-                      {item.headName}
-                    </td>
-                    <td style={tdStyle}>
-                      <span style={badgeCode}>
-                        {item.code}
-                      </span>
-                    </td>
-                  </>
-                ) : tab === "Students" ? (
-                  <>
-                    <td style={tdBold}>
-                      {item.name || item.userName}
-                    </td>
-                    <td style={tdStyle}>
-                      {item.rollNo}
-                    </td>
-                    <td style={tdStyle}>
-                      {item.batch?.batchName}
-                    </td>
-                    <td style={tdStyle}>
-                      {
-                        item.batch?.branch
-                          ?.branchName
-                      }
-                    </td>
-                  </>
-                ) : tab === "Teachers" ? (
-                  <>
-                    <td style={tdBold}>{item.name}</td>
-                    <td style={tdStyle}>
-                      {item.staffId}
-                    </td>
-                    <td style={tdStyle}>
-                      {item.institution?.name}
-                    </td>
-                  </>
-                ) : tab === "Dashboard" ? (
-                  <>
-                    <td style={tdBold}>
-                      {item.userName}
-                    </td>
-                    <td style={tdStyle}>
-                      {item.problemName}
-                    </td>
-                    <td style={tdStyle}>
-                      {item.status}
-                    </td>
-                    <td style={tdStyle}>
-                      {item.score}%
-                    </td>
-                    <td style={tdStyle}>
-                      {item.submittedAt
-                        ? new Date(
-                            item.submittedAt
-                          ).toLocaleDateString()
-                        : "N/A"}
-                    </td>
-                  </>
-                ) : (
-                  <>
-                    <td style={tdBold}>
-                      {item.name ||
-                        item.branchName ||
-                        item.batchName}
-                    </td>
-
-                    <td style={tdStyle}>
-                      {item.code ||
-                        item.branchCode}
-                    </td>
-
-                    <td style={tdStyle}>Active</td>
-                  </>
+const DataTable = ({ headers, data, tab, onDelete, onView, onEdit }) => (
+    <div style={{ overflowX: 'auto' }}>
+        <table style={tableStyle}>
+            <thead>
+                <tr style={tableHeaderRow}>
+                    {headers.map(h => <th key={h} style={thStyle}>{h}</th>)}
+                </tr>
+            </thead>
+            <tbody>
+                {data && data.length > 0 ? data.map((item, i) => (
+                    <tr key={item.id || i} style={tableRow}>
+                        <td style={tdStyle}>{i + 1}</td>
+                        {tab === "Institutions" ? (
+                            <>
+                                <td style={tdBold}>{item.name}</td>
+                                <td style={tdStyle}>{item.primaryEmail}</td>
+                                <td style={tdStyle}>{item.headName}</td>
+                                <td style={tdStyle}><span style={badgeCode}>{item.code}</span></td>
+                            </>
+                        ) : tab === "Students" || tab === "Student Import" ? (
+                            <>
+                                <td style={tdBold}>{item.name || item.userName}</td>
+                                <td style={tdStyle}>{item.rollNo}</td>
+                                <td style={tdStyle}>{item.batch?.batchName || "N/A"}</td>
+                                <td style={tdStyle}>{item.batch?.branch?.branchName || "N/A"}</td>
+                            </>
+                        ) : tab === "Dashboard" ? (
+                            <>
+                                <td style={tdBold}>{item.userName}</td>
+                                <td style={tdStyle}>{item.problemName}</td>
+                                <td style={tdStyle}><span style={{ color: item.status === 'ACCEPTED' ? '#10b981' : '#ef4444', fontWeight: 'bold' }}>{item.status}</span></td>
+                                <td style={tdStyle}>{item.score}%</td>
+                                <td style={tdStyle}>{item.submittedAt ? new Date(item.submittedAt).toLocaleDateString() : 'N/A'}</td>
+                            </>
+                        ) : tab === "Teachers" || tab === "Teacher Import" ? (
+                            <>
+                                <td style={tdBold}>{item.name}</td>
+                                <td style={tdStyle}>{item.staffId || "N/A"}</td>
+                                <td style={tdStyle}>{item.institution?.name || "N/A"}</td>
+                            </>
+                        ) : (
+                            <>
+                                <td style={tdBold}>{item.name || item.branchName || item.batchName}</td>
+                                <td style={tdStyle}>{item.code || item.branchCode || "---"}</td>
+                                <td style={tdStyle}><span style={{color: '#10b981'}}>Active</span></td>
+                            </>
+                        )}
+                        {tab !== "Dashboard" && (
+                            <td style={tdStyle}>
+                                <div style={{ display: 'flex', gap: '8px' }}>
+                                    <button onClick={() => onView(item)} style={actionBtnView} title="View">👁️</button>
+                                    <button onClick={() => onEdit(item)} style={actionBtnEdit} title="Edit">✏️</button>
+                                    <button onClick={() => onDelete(item, tab)} style={actionBtnDelete} title="Delete">🗑️</button>
+                                </div>
+                            </td>
+                        )}
+                    </tr>
+                )) : (
+                    <tr><td colSpan={headers.length} style={emptyCell}>No records found.</td></tr>
                 )}
-
-                {tab !== "Dashboard" && (
-                  <td style={tdStyle}>
-                    <div
-                      style={{
-                        display: "flex",
-                        gap: 8,
-                      }}
-                    >
-                      <button
-                        style={actionBtnView}
-                        onClick={() => onView(item)}
-                      >
-                        👁️
-                      </button>
-
-                      <button
-                        style={actionBtnEdit}
-                        onClick={() => onEdit(item)}
-                      >
-                        ✏️
-                      </button>
-
-                      <button
-                        style={actionBtnDelete}
-                        onClick={() =>
-                          onDelete(item, tab)
-                        }
-                      >
-                        🗑️
-                      </button>
-                    </div>
-                  </td>
-                )}
-              </tr>
-            ))
-          ) : (
-            <tr>
-              <td
-                style={emptyCell}
-                colSpan={headers.length}
-              >
-                No Records Found
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+            </tbody>
+        </table>
     </div>
-  );
-};
+);
 
-const Modal = ({ item, close }) => (
-  <div style={modalOverlay} onClick={close}>
-    <div
-      style={modalContent}
-      onClick={(e) => e.stopPropagation()}
-    >
-      <h3 style={cardTitle}>Details</h3>
-
-      <hr style={{ margin: "15px 0" }} />
-
-      {Object.entries(item).map(([k, v]) => (
-        <div key={k} style={{ marginBottom: 10 }}>
-          <label style={lStyle}>{k}</label>
-
-          <div style={{ color: "#fff" }}>
-            {typeof v === "object"
-              ? v?.name ||
-                v?.batchName ||
-                v?.branchName ||
-                "---"
-              : String(v)}
-          </div>
-        </div>
-      ))}
-
-      <button
-        style={{
-          ...secondaryBtn,
-          width: "100%",
-          marginTop: 15,
-        }}
-        onClick={close}
-      >
-        Close
-      </button>
+const NavItem = ({ label, icon, active, onClick }) => (
+    <div onClick={onClick} style={active ? activeNavItem : navItem}>
+        {icon && <span style={{ marginRight: '10px' }}>{icon}</span>} {label}
     </div>
-  </div>
 );
 
-const NavItem = ({
-  label,
-  icon,
-  active,
-  onClick,
-}) => (
-  <div
-    onClick={onClick}
-    style={active ? activeNavItem : navItem}
-  >
-    {icon} {label}
-  </div>
+const StatBox = ({ title, val, color, icon }) => (
+    <div style={{ ...statCard, borderLeft: `4px solid ${color}` }}>
+        <div style={statHeader}><span style={statLabel}>{title}</span> <span style={{fontSize: '20px'}}>{icon}</span></div>
+        <h2 style={statValue}>{val}</h2>
+    </div>
 );
 
-const StatBox = ({ title, val, color }) => (
-  <div
-    style={{
-      ...statCard,
-      borderLeft: `4px solid ${color}`,
-    }}
-  >
-    <div style={statLabel}>{title}</div>
 
-    <h2 style={statValue}>{val}</h2>
-  </div>
-);
 
 const appLayout = {
-  display: "flex",
-  minHeight: "100vh",
-  background: "#0f172a",
-  color: "#fff",
+    display: 'flex',
+    height: '100vh',
+    background: '#0f172a',
+    color: '#e5e7eb',
+    fontFamily: 'Inter, sans-serif'
 };
 
 const sidebarStyle = {
-  width: 240,
-  background: "#111827",
-  padding: 20,
-};
-
-const mainViewport = {
-  flex: 1,
-};
-
-const navStyle = {
-  marginTop: 20,
-};
-
-const navItem = {
-  padding: 10,
-  cursor: "pointer",
-  borderRadius: 6,
-  marginBottom: 8,
-};
-
-const activeNavItem = {
-  ...navItem,
-  background: "#1e293b",
-  color: "#3b82f6",
-};
-
-const topHeader = {
-  display: "flex",
-  justifyContent: "space-between",
-  alignItems: "center",
-  padding: 20,
-  borderBottom: "1px solid #1f2937",
-};
-
-const contentSection = {
-  padding: 25,
-};
-
-const statsGrid = {
-  display: "grid",
-  gridTemplateColumns:
-    "repeat(auto-fit, minmax(220px, 1fr))",
-  gap: 20,
-  marginBottom: 25,
-};
-
-const statCard = {
-  background: "#111827",
-  padding: 20,
-  borderRadius: 10,
-};
-
-const statLabel = {
-  color: "#9ca3af",
-};
-
-const statValue = {
-  marginTop: 10,
-};
-
-const cardStyle = {
-  background: "#111827",
-  padding: 20,
-  borderRadius: 10,
-  marginBottom: 25,
-};
-
-const cardHeader = {
-  display: "flex",
-  justifyContent: "space-between",
-  marginBottom: 20,
-};
-
-const cardTitle = {
-  fontSize: 18,
-  fontWeight: 600,
-};
-
-const primaryBtn = {
-  background: "#3b82f6",
-  color: "#fff",
-  border: "none",
-  padding: "8px 14px",
-  borderRadius: 6,
-  cursor: "pointer",
-};
-
-const secondaryBtn = {
-  background: "#374151",
-  color: "#fff",
-  border: "none",
-  padding: "8px 14px",
-  borderRadius: 6,
-  cursor: "pointer",
-};
-
-const dangerBtn = {
-  background: "#ef4444",
-  color: "#fff",
-  border: "none",
-  padding: "8px 14px",
-  borderRadius: 6,
-};
-
-const tableStyle = {
-  width: "100%",
-  borderCollapse: "collapse",
-};
-
-const tableHeaderRow = {
-  borderBottom: "1px solid #1f2937",
-};
-
-const thStyle = {
-  padding: 12,
-  textAlign: "left",
-};
-
-const tableRow = {
-  borderBottom: "1px solid #1f2937",
-};
-
-const tdStyle = {
-  padding: 12,
-};
-
-const tdBold = {
-  ...tdStyle,
-  fontWeight: 600,
-};
-
-const badgeCode = {
-  background: "#1e293b",
-  padding: "4px 8px",
-  borderRadius: 4,
-};
-
-const actionBtnView = {
-  background: "#f59e0b",
-  border: "none",
-  padding: "5px 8px",
-  borderRadius: 5,
-};
-
-const actionBtnEdit = {
-  background: "#6b7280",
-  border: "none",
-  padding: "5px 8px",
-  borderRadius: 5,
-};
-
-const actionBtnDelete = {
-  background: "#ef4444",
-  border: "none",
-  padding: "5px 8px",
-  borderRadius: 5,
-};
-
-const emptyCell = {
-  textAlign: "center",
-  padding: 30,
-};
-
-const modalOverlay = {
-  position: "fixed",
-  inset: 0,
-  background: "rgba(0,0,0,0.7)",
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "center",
-};
-
-const modalContent = {
-  background: "#111827",
-  padding: 25,
-  width: 500,
-  borderRadius: 10,
-};
-
-const formGrid = {
-  display: "grid",
-  gridTemplateColumns: "1fr 1fr",
-  gap: 15,
-};
-
-const fGroup = {
-  display: "flex",
-  flexDirection: "column",
-};
-
-const lStyle = {
-  marginBottom: 5,
-  fontSize: 12,
-};
-
-const iBox = {
-  background: "#020617",
-  border: "1px solid #1f2937",
-  padding: 10,
-  borderRadius: 6,
-  color: "#fff",
-};
-
-const loadingBox = {
-  display: "flex",
-  justifyContent: "center",
-  padding: 100,
-};
-
-const spinnerStyle = {
-  width: 40,
-  height: 40,
-  border: "4px solid #1f2937",
-  borderTop: "4px solid #3b82f6",
-  borderRadius: "50%",
-};
-
-const headerRight = {
-  display: "flex",
-  gap: 20,
-  alignItems: "center",
-};
-
-const profilePill = {
-  display: "flex",
-  alignItems: "center",
-  gap: 10,
-};
-
-const smallAvatar = {
-  width: 35,
-  height: 35,
-  borderRadius: "50%",
-  background: "#3b82f6",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-};
-
-const pillName = {
-  fontWeight: 600,
-};
-
-const pillRole = {
-  fontSize: 12,
-  color: "#9ca3af",
-};
-
-const viewTitle = {
-  fontSize: 22,
-};
-
-const breadcrumb = {
-  fontSize: 12,
-  color: "#9ca3af",
+    width: '240px',
+    background: '#111827',
+    borderRight: '1px solid #1f2937',
+    display: 'flex',
+    flexDirection: 'column'
 };
 
 const brandWrapper = {
-  marginBottom: 20,
+    padding: '20px',
+    borderBottom: '1px solid #1f2937'
 };
 
 const brandTitle = {
-  fontSize: 18,
+    fontSize: '16px',
+    fontWeight: '700',
+    color: '#a2b9dc',
+    margin: 0
 };
 
 const badgeStyle = {
-  background: "#3b82f6",
-  padding: "3px 7px",
-  borderRadius: 4,
-  fontSize: 10,
+    fontSize: '10px',
+    background: '#3b82f6',
+    padding: '2px 6px',
+    borderRadius: '4px',
+    marginLeft: '6px'
+};
+
+const navStyle = {
+    padding: '16px'
 };
 
 const menuGroupWrapper = {
-  marginBottom: 20,
+    marginBottom: '20px'
 };
 
 const groupLabel = {
-  fontSize: 11,
-  color: "#9ca3af",
+    fontSize: '11px',
+    color: '#6b7280',
+    marginBottom: '8px'
 };
 
+const navItem = {
+    padding: '10px',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    color: '#9ca3af',
+    fontSize: '14px'
+};
+
+const activeNavItem = {
+    ...navItem,
+    background: '#1e293b',
+    color: '#3b82f6'
+};
+
+const mainViewport = {
+    flex: 1,
+    overflowY: 'auto'
+};
+
+const topHeader = {
+    padding: '16px 30px',
+    background: '#111827',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderBottom: '1px solid #1f2937'
+};
+
+const viewTitle = {
+    fontSize: '18px',
+    fontWeight: '600'
+};
+
+const breadcrumb = {
+    fontSize: '12px',
+    color: '#6b7280'
+};
+
+const contentSection = {
+    padding: '25px 30px'
+};
+
+const profilePill = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    background: '#1f2937',
+    padding: '6px 10px',
+    borderRadius: '20px'
+};
+
+const smallAvatar = {
+    width: '30px',
+    height: '30px',
+    borderRadius: '50%',
+    background: '#3b82f6',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontWeight: '600'
+};
+
+const pillName = {
+    fontSize: '13px'
+};
+
+const pillRole = {
+    fontSize: '10px',
+    color: '#9ca3af'
+};
+
+const statsGrid = {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+    gap: '15px',
+    marginBottom: '25px'
+};
+
+const statCard = {
+    background: '#111827',
+    padding: '16px',
+    borderRadius: '8px',
+    border: '1px solid #1f2937'
+};
+
+const statHeader = {
+    display: 'flex',
+    justifyContent: 'space-between'
+};
+
+const statLabel = {
+    fontSize: '13px',
+    color: '#9ca3af'
+};
+
+const statValue = {
+    fontSize: '22px',
+    marginTop: '10px',
+    fontWeight: '600'
+};
+
+const cardStyle = {
+    background: '#111827',
+    borderRadius: '8px',
+    padding: '20px',
+    border: '1px solid #1f2937'
+};
+
+const cardHeader = {
+    display: 'flex',
+    justifyContent: 'space-between',
+    marginBottom: '15px'
+};
+
+const cardTitle = {
+    fontSize: '16px',
+    fontWeight: '600'
+};
+
+const tableStyle = {
+    width: '100%',
+    borderCollapse: 'collapse'
+};
+
+const tableHeaderRow = {
+    borderBottom: '1px solid #1f2937'
+};
+
+const thStyle = {
+    padding: '12px',
+    fontSize: '12px',
+    color: '#9ca3af'
+};
+
+const tableRow = {
+    borderBottom: '1px solid #1f2937'
+};
+
+const tdStyle = {
+    padding: '12px',
+    fontSize: '14px',
+    color: '#9ca3af'
+};
+
+const tdBold = {
+    ...tdStyle,
+    color: '#f3f4f6',
+    fontWeight: '500'
+};
+
+const emptyCell = {
+    padding: '40px',
+    textAlign: 'center',
+    color: '#6b7280'
+};
+
+const badgeCode = {
+    background: '#1e293b',
+    padding: '3px 6px',
+    borderRadius: '4px',
+    fontSize: '12px'
+};
+
+const primaryBtn = {
+    background: '#3b82f6',
+    color: '#fff',
+    border: 'none',
+    padding: '8px 14px',
+    borderRadius: '6px',
+    cursor: 'pointer'
+};
+
+const secondaryBtn = {
+    background: '#1f2937',
+    color: '#9ca3af',
+    border: '1px solid #374151',
+    padding: '8px 14px',
+    borderRadius: '6px',
+    cursor: 'pointer'
+};
+
+const dangerBtn = {
+    background: '#ef4444',
+    color: '#fff',
+    border: 'none',
+    padding: '8px 14px',
+    borderRadius: '6px',
+    cursor: 'pointer'
+};
+
+const actionBtnView = {
+    background: '#f59e0b',
+    border: 'none',
+    padding: '5px 8px',
+    borderRadius: '5px',
+    cursor: 'pointer'
+};
+
+const actionBtnEdit = {
+    background: '#6b7280',
+    border: 'none',
+    padding: '5px 8px',
+    borderRadius: '5px',
+    cursor: 'pointer'
+};
+
+const actionBtnDelete = {
+    background: '#ef4444',
+    border: 'none',
+    padding: '5px 8px',
+    borderRadius: '5px',
+    cursor: 'pointer'
+};
+
+const formGrid = {
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    gap: '15px'
+};
+
+const fGroup = {
+    display: 'flex',
+    flexDirection: 'column'
+};
+
+const lStyle = {
+    fontSize: '11px',
+    marginBottom: '5px',
+    color: '#9ca3af'
+};
+
+const iBox = {
+    background: '#020617',
+    border: '1px solid #1f2937',
+    padding: '10px',
+    borderRadius: '6px',
+    color: '#fff'
+};
+
+const modalOverlay = {
+    position: 'fixed',
+    inset: 0,
+    background: 'rgba(0,0,0,0.7)',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center'
+};
+
+const modalContent = {
+    background: '#111827',
+    padding: '25px',
+    borderRadius: '10px',
+    width: '500px'
+};
+
+const spinnerStyle = {
+    width: '35px',
+    height: '35px',
+    border: '4px solid #1f2937',
+    borderTop: '4px solid #3b82f6',
+    borderRadius: '50%',
+    animation: 'spin 1s linear infinite'
+};
 export default AdminDashboard;
