@@ -71,7 +71,8 @@ public class SecurityConfig {
             .requestMatchers("/api/admin/assessment/**").hasAnyAuthority("ADMIN", "TEACHER", "ROLE_ADMIN", "ROLE_TEACHER")
             .requestMatchers(HttpMethod.POST, "/api/problems/add").hasAnyAuthority("ADMIN", "TEACHER", "ROLE_ADMIN", "ROLE_TEACHER")
             .requestMatchers("/api/admin/bulk-upload").hasAnyAuthority("ADMIN", "TEACHER", "ROLE_ADMIN", "ROLE_TEACHER")
-            .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
+            .requestMatchers("/api/admin/**")
+.hasAnyAuthority("ADMIN", "TEACHER")
           
             .requestMatchers("/api/compiler/**", "/api/submissions/**", "/api/users/update").authenticated()
             .requestMatchers("/api/assessment/run", "/api/assessment/final-submit").authenticated()
