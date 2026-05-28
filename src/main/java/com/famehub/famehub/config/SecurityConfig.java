@@ -57,8 +57,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/assessment/final-submit").authenticated()
 
                
-                .requestMatchers("/api/admin/**")
-                .hasAnyAuthority("ROLE_ADMIN")
+               .requestMatchers("/api/admin/**")
+.hasAnyAuthority("ROLE_ADMIN", "ROLE_TEACHER")
 
                 
                 .requestMatchers("/api/assessment/*/add-questions")
