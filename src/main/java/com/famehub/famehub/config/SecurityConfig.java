@@ -49,7 +49,7 @@ public class SecurityConfig {
            
             .requestMatchers("/api/assessment/run", "/api/assessment/final-submit").authenticated()
             .requestMatchers("/api/assessment/*/add-questions").permitAll()
-            .requestMatchers("/api/assessment/**").permitAll()
+          
             .requestMatchers("/api/assessment/finish").permitAll()
             .requestMatchers("/api/admin/assessment/all").permitAll()
             .requestMatchers("/api/admin/hierarchy/**").permitAll()
@@ -77,7 +77,7 @@ public class SecurityConfig {
             .requestMatchers("/api/assessment/run", "/api/assessment/final-submit").authenticated()
             
            
-            .requestMatchers("/api/admin/**").hasAuthority("ADMIN") 
+            
             .requestMatchers(HttpMethod.POST, "/api/problems/add").authenticated() 
             .requestMatchers("/api/admin/bulk-upload").authenticated()
             .requestMatchers("/api/compiler/**").authenticated()
