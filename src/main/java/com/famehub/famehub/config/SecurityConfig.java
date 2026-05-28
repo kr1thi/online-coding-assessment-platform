@@ -60,6 +60,8 @@ public class SecurityConfig {
             .requestMatchers(HttpMethod.DELETE, "/api/admin/assessment/**").permitAll()
             .requestMatchers("/api/admin/assessment/public/**").permitAll()
             .requestMatchers("/api/admin/stats").hasAuthority("ADMIN")
+                                   .requestMatchers(HttpMethod.POST, "/api/assessment/create")
+.hasAnyAuthority("ADMIN", "TEACHER")
            
             
             .requestMatchers("/api/assessment/*/add-questions").hasAnyAuthority("ADMIN", "TEACHER")
